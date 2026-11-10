@@ -124,7 +124,7 @@ Our final run of all tests (`python -m pytest -q tests`): 206 passed. Of these, 
 ## 5. Demonstration & Links
 
 - **Live Demo URL (if hosted):** None. The app runs locally against your own Db2 (web UI and API bound to 127.0.0.1).
-- **Demo Video (YouTube / Loom / Drive):** https://youtu.be/5ZcVFBsjYLE (2:46)
+- **Demo Video (YouTube / Loom / Drive):** https://youtu.be/OFGFV6zC5QE (2:46)
 - **External Source Repo (if hosted separately):** [REPO_URL]
 - **Presentation / Slides URL (optional):** None.
 

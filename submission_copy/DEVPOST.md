@@ -1,6 +1,6 @@
 # Devpost project page (draft)
 
-Placeholders: https://youtu.be/5ZcVFBsjYLE, https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55, https://github.com/wiiqz/IBM2026. Source file for each claim: see the
+Placeholders: https://youtu.be/OFGFV6zC5QE, https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55, https://github.com/wiiqz/IBM2026. Source file for each claim: see the
 "Evidence map" at the end (do not paste the map).
 
 ---
@@ -15,7 +15,7 @@ Find the services a vague security report hits, inside IBM Db2
 
 ## Links (Devpost "Try it out" / video fields)
 
-- Video: https://youtu.be/5ZcVFBsjYLE
+- Video: https://youtu.be/OFGFV6zC5QE
 - Submission PR: https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 - Code: https://github.com/wiiqz/IBM2026
 

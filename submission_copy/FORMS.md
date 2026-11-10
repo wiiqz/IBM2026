@@ -2,7 +2,7 @@
 
 Both Google Forms need a Google sign-in, so their exact fields are UNKNOWN. The answers below cover the fields
 these forms usually ask for; copy the matching block into each field. Placeholders: [EMAIL],
-https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55, https://youtu.be/5ZcVFBsjYLE, https://github.com/wiiqz/IBM2026, [LINKEDIN_POST_URL].
+https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55, https://youtu.be/OFGFV6zC5QE, https://github.com/wiiqz/IBM2026, [LINKEDIN_POST_URL].
 
 - Form A: https://forms.gle/n8GQL4tg7Yzftwu39 (linked from the event site, Devpost Resources, Unstop and SKILL.md).
 - Form B: https://forms.gle/ZjsLaFU5zAYJonwk9 (labelled "Main Project Submission Form" on Luma; a different form).
@@ -34,7 +34,7 @@ NEEDLE is a vulnerability-triage tool that fuses BM25 keyword search and DiskANN
 
 **GitHub PR URL:** https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 
-**Demo video URL:** https://youtu.be/5ZcVFBsjYLE
+**Demo video URL:** https://youtu.be/OFGFV6zC5QE
 
 **Source repository URL (if asked):** https://github.com/wiiqz/IBM2026
 
@@ -83,7 +83,7 @@ NEEDLE's README has copy-paste SQL that shows what exists in Db2, and every numb
 
 **GitHub PR URL:** https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 
-**Demo video link:** https://youtu.be/5ZcVFBsjYLE
+**Demo video link:** https://youtu.be/OFGFV6zC5QE
 
 **Project description (if a text field is shown):** use the one-paragraph description above.
 
