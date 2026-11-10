@@ -64,7 +64,10 @@ if (what === "all" || what === "triage") {
 }
 if (what === "all" || what === "finding") {
   await page.setViewportSize({ width: 1600, height: 1000 });
+  // wait for /api/health so the header shows "Db2 <database>" with live status dots, not the loading state
+  const health = page.waitForResponse((r) => r.url().includes("/api/health"), { timeout: 30000 }).catch(() => console.log("health did not answer"));
   await page.goto(base + "/#/finding");
+  await health;
   await page.waitForTimeout(1200);
   await page.screenshot({ path: `${out}/04_rcac_recall_chart.png`, clip: { x: 0, y: 0, width: 1600, height: 1000 } });
   console.log("saved 04_rcac_recall_chart.png");
@@ -79,7 +82,8 @@ if (what === "compare") {
   await page.goto(base + "/#/finding");
   await page.getByTestId("compare").scrollIntoViewIfNeeded();
   await page.getByTestId("compare-btn").click();
-  await page.getByTestId("compare").locator(".panel").first().waitFor({ timeout: 300000 });
+  // the loading state also renders .panel skeletons; compare-diff appears only when the three results are in
+  await page.getByTestId("compare-diff").waitFor({ timeout: 300000 });
   await page.waitForTimeout(600);
   const r = await page.evaluate(() => { const b = document.querySelector("[data-testid=compare]").getBoundingClientRect(); return [b.top + scrollY, b.height]; });
   await page.screenshot({ path: `${out}/03_rcac_senior_vs_junior.png`, fullPage: true, clip: { x: 0, y: r[0] + 16, width: 1600, height: r[1] + 8 } });

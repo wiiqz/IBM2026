@@ -13,7 +13,9 @@ const mark = await p.evaluate(() => document.querySelector("header svg").outerHT
 await p.evaluate(({ got, mark, h }) => {
   document.querySelector("header").style.display = "none";
   const hero = document.querySelector("[data-testid=hero]");
-  const stage = hero.lastElementChild;
+  // the hero is now <section> > sticky wrapper > stage, followed by the story-chapters spacer; the stage is the wrapper's last child
+  const stage = hero.firstElementChild.lastElementChild;
+  Object.assign(hero.firstElementChild.style, { position: "relative", top: "0" }); // lg:sticky lg:top-14 would leave a 56 px band with the header hidden
   Object.assign(stage.style, { height: h + "px", maxHeight: "none", minHeight: "0" });
   for (const sel of ["[data-testid=hero-controls]", "[data-testid=hero-cta]"]) hero.querySelector(sel).parentElement.style.display = sel.includes("cta") ? "none" : "";
   hero.querySelector("[data-testid=hero-controls]").style.display = "none";
@@ -35,6 +37,8 @@ await p.evaluate(({ got, mark, h }) => {
   Object.assign(rd.style, { position: "absolute", right: "44px", bottom: "40px", textAlign: "right", zIndex: 20,
     font: "500 " + Math.round(h * 0.034) + "px/1.35 'Red Hat Mono Variable', monospace", color: "#c9d2d5" });
   stage.appendChild(rd);
+  // keep the sub line clear of the readout (at 3:2 the larger font would run under it): wrap it 40 px before the readout
+  sub.style.maxWidth = Math.floor(rd.getBoundingClientRect().left - sub.getBoundingClientRect().left - 40) + "px";
   window.scrollTo(0, 0);
 }, { got, mark, h: +h });
 await p.waitForTimeout(900);
