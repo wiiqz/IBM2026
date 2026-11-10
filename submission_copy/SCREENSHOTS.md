@@ -4,6 +4,9 @@
 > FastAPI) against a fresh full-corpus Db2 in William's Codespace; the old Streamlit JPGs were removed. Differences
 > from the plan below:
 > - 01/02: web UI as NDL_JUNIOR. The memo model is `qwen3:14b`; that run kept 6 sentences and removed 0.
+> - 01 shows "triage SQL 696 ms": that UI timer is the wall clock in the local Python service, including the router's
+>   visibility count and the round trips through the SSH tunnel to the Codespace Db2. The README p50 of 53.5 ms is one
+>   `TRIAGE` call measured inside the Codespace.
 > - 2026-11-10: 00-06 and `thumbnail_3x2.jpg` were re-captured against the fixed web UI (local API on :8600 with the
 >   demo identity switcher on, live Db2 and Ollama), so the amber "DEMO IDENTITY SWITCHER" strip shows under the
 >   header in 00, 01 and 04.
