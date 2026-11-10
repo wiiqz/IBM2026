@@ -15,7 +15,7 @@ export default function Landing() {
       <Hero />
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <section className="grid gap-8 border-b border-hair py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16 lg:py-24">
-          <h2 className="max-w-[16ch] font-display text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">One statement does three jobs</h2>
+          <h2 className="max-w-[16ch] font-display text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">Three Db2 features do the work</h2>
           <dl className="border-t border-hair">
             {STEPS.map((s) => (
               <div key={s.obj} className="grid gap-1 border-b border-hair py-5 sm:grid-cols-[250px_minmax(0,1fr)] sm:gap-8">
@@ -118,17 +118,17 @@ function Hero() {
   const batchVisible = query?.batch_visible_p10 ?? 0;
   const readout = !info || !query ? null
     : lens === "all" ? { n: "10 of 10", tone: "text-[#5fdbe3]", line: `All ${fmt.int(info.n)} public advisories visible. The 10 nearest to the question are lit.` }
-      : lens === "p10-shared" ? { n: `${batchVisible} of 10`, tone: "text-affected-ink", line: `The vector index fetches the ${info.batch} nearest, sized as if this analyst saw half the rows. The permission removes ${info.batch - batchVisible} (red). ${batchVisible} ${batchVisible === 1 ? "comes" : "come"} back.` }
+      : lens === "p10-shared" ? { n: `${batchVisible} of 10`, tone: "text-affected-ink", line: `The vector index fetches a first batch of ${info.batch}, sized as if this analyst saw half the rows. The permission removes ${info.batch - batchVisible} (red). ${batchVisible} ${batchVisible === 1 ? "comes" : "come"} back.` }
         : { n: "10 of 10", tone: "text-[#5fdbe3]", line: `NEEDLE counts the ${fmt.int(info.p10_visible)} rows this analyst may read and runs an exact scan over them instead.` };
 
   const sv = storyQuery?.batch_visible_p10 ?? 0;
   const chapters = !info ? [] : [
     { name: "The corpus", title: `${fmt.int(info.n)} advisories, placed by meaning`,
-      body: "Each point is a real Python security advisory. Points that sit close together mean similar things, so even a vague question lands next to the advisories it is about." },
+      body: "Each point is a real Python security advisory. Points that sit close together mean similar things, so even a vague question usually lands near the advisories it is about." },
     { name: "The search", title: "A question arrives",
       body: "The question becomes a vector. Db2's vector index walks its graph toward it, one neighbour at a time, and collects the nearest advisories. Keyword search runs in the same SQL statement." },
     { name: "The permission", title: `Ask for 10. Get ${sv}.`,
-      body: `An analyst who may read ${fmt.int(info.p10_visible)} advisories asks for 10. The shared plan fetches the ${info.batch} nearest as if everyone saw half the rows; row access control removes ${info.batch - sv} of them (red), and ${sv} ${sv === 1 ? "comes" : "come"} back.` },
+      body: `An analyst who may read ${fmt.int(info.p10_visible)} advisories asks for 10. The shared plan fetches a first batch of ${info.batch}, sized as if everyone saw half the rows; row access control removes ${info.batch - sv} of them (red), and ${sv} ${sv === 1 ? "comes" : "come"} back.` },
     { name: "The router", title: "Count first, then search",
       body: `NEEDLE counts the ${fmt.int(info.p10_visible)} rows this analyst may read, then runs an exact scan over them. 10 of 10 come back, and none from outside the permission.` },
   ];

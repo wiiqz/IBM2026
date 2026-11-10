@@ -182,6 +182,16 @@ def test_finding_numbers_come_from_the_evidence_files(client):
     assert round(f["estimate"]["permission_ff"], 3) == 0.495 and f["estimate"]["vector_ixscan_est_rows"] == 21.0
     assert f["correlated"]["p10_zero_rows"] == 130 and f["correlated"]["queries"] == 170
     assert f["plan_cache"]["distinct_executable_ids"] == 1 and len(f["plan_cache"]["steps"]) == 5
+    assert round(f["literal_control"]["all_recall"], 3) == 0.765
+
+
+def test_stats_come_from_the_canonical_run_and_evidence(client):
+    s = client.get("/api/stats").json()
+    assert s["eval_run"]["run_id"] == "20261110T024304Z" and s["eval_run"]["queries"] == 450
+    assert round(s["recall10"]["paraphrase"]["triage"], 3) == 0.453 and s["recall10"]["paraphrase"]["bm25"] == 0.34
+    assert s["latency_ms"]["triage_p50"] == 53.5
+    assert s["posting_fix"] == {"before_ms": 244.8, "after_ms": 27.2, "file": "docs/evidence/rcac_posting_overhead.md"}
+    assert s["tests"]["passed"] >= 175
 
 
 def test_explain_plans_parsed_from_evidence(client):

@@ -6,7 +6,7 @@ import { fmt, type SeriesPoint } from "../api";
    direct-labelled, so identity never rests on colour alone. */
 export const SERIES = [
   { key: "rcac", label: "RCAC user, shared plan", color: "#c4251c", dash: undefined },
-  { key: "where", label: "Same rows, literal WHERE", color: "#5d6569", dash: "5 4" },
+  { key: "where", label: "Plain WHERE, no RCAC", color: "#5d6569", dash: "5 4" },
   { key: "router", label: "NEEDLE router", color: "#009aa6", dash: undefined },
 ] as const;
 type Key = (typeof SERIES)[number]["key"];

@@ -24,8 +24,8 @@ export default function FindingView({ session, demo }: { session: Session | null
             Ask Db2 for {k}. Get <span className="text-affected">{Math.round(p10.rows)}</span>.
           </h1>
           <p className="mt-4 max-w-[62ch] text-md text-ink-2">
-            Under row access control, Db2's vector index search returns far fewer rows than asked for to any analyst who
-            may see only part of the table, and nothing tells the application. NEEDLE measured it, found the cause in
+            Under row access control, Db2's vector index search returns far fewer rows than asked for to an analyst who
+            may see only a small part of the table, and nothing tells the application. NEEDLE measured it, found the cause in
             the optimizer's estimate, and routes around it.
           </p>
         </div>
@@ -66,8 +66,10 @@ export default function FindingView({ session, demo }: { session: Session | null
           </p>
           <p className="mt-3">
             An analyst who sees {Math.round(p10.x)}% of rows asks for {k} and gets <b className="font-mono text-affected">{fmt.dec(p10.rows, 2)}</b> on
-            average. The answer looks complete. Write the same permission as a literal <code className="font-mono text-[13px] text-ink">WHERE</code> and
-            the optimizer sees it: recall rises from {fmt.dec(p10.recall)} to {fmt.dec(p10w.recall)}.
+            average. The answer looks complete. Write the same permission with a literal value, still under row access
+            control, and the optimizer sees it: recall rises from {fmt.dec(p10.recall)} to{" "}
+            <b className="font-mono text-ink">{fmt.dec(f.literal_control.heldout_recall)}</b> on the same held-out queries. A plain{" "}
+            <code className="font-mono text-[13px] text-ink">WHERE</code> without row access control gets {fmt.dec(p10w.recall)}.
           </p>
           <p className="mt-3">
             So the cause is how visible the predicate is to the optimizer. It is a selectivity-estimation and filtered

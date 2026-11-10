@@ -357,6 +357,7 @@ def finding() -> dict:
     corr = _read_json("rcac_correlated.json")
     ff = _read_json("rcac_ffsource.json")
     pc = _read_json("rcac_plancache.json")
+    lit = _read_json("rcac_litcopy.json")["B_literal"]["approx10"]
     p10 = corr["measure"]["NDL_P10"]
     first = ff["steps"][0]
     fwd = next(r for r in pc["runs"] if r["order"] == "forward")
@@ -377,11 +378,51 @@ def finding() -> dict:
                        "p10_recall_zero": p10["approx10_recall_histogram"]["recall_0"],
                        "coverage_by_p": corr["build"]["coverage_by_p"]},
         "plan_cache": plan_cache,
+        "literal_control": {"heldout_recall": lit["heldout"]["recall_mean"], "all_recall": lit["all"]["recall_mean"],
+                            "all_returned": lit["all"]["returned_mean"]},
         "sources": {"selectivity": "eval/results/rcac_recall_vs_selectivity.json",
                     "plan_cache": "eval/results/rcac_plancache.json",
+                    "literal_control": "eval/results/rcac_litcopy.json",
                     "correlated": "eval/results/rcac_correlated.json",
                     "estimate": "eval/results/rcac_ffsource.json", "write_up": "docs/evidence/rcac_real.md"},
     }
+
+
+def _canonical_eval() -> tuple[str, dict]:
+    runs = sorted((ROOT / "eval" / "results").glob("2026*.json"))
+    for p in reversed(runs):
+        d = json.loads(p.read_text(encoding="utf-8"))
+        if d.get("canonical"):
+            return p.name, d
+    raise HTTPException(404, {"kind": "input", "message": "No canonical evaluation run in eval/results"})
+
+
+@app.get("/api/stats")
+def stats() -> dict:
+    """Measured numbers for the How-it-works page; each comes from a file in eval/results or docs/evidence."""
+    name, ev = _canonical_eval()
+    rel, fid = ev["relevance"], ev["ann_fidelity"]["approx_vs_exact"]["all"]
+    out = {
+        "eval_run": {"file": f"eval/results/{name}", "run_id": ev["run_id"], "session_user": ev["db"]["session_user"],
+                     "queries": rel["triage"]["all"]["n"], "per_slice": rel["triage"]["paraphrase"]["n"]},
+        "recall10": {s: {r: rel[r][s]["recall@10"] for r in ("triage", "approx", "bm25", "exact")}
+                     for s in ("named", "masked", "paraphrase")},
+        "latency_ms": {"triage_p50": rel["triage"]["all"]["latency_p50_ms"], "triage_p95": rel["triage"]["all"]["latency_p95_ms"],
+                       "approx_p50": rel["approx"]["all"]["latency_p50_ms"], "exact_p50": rel["exact"]["all"]["latency_p50_ms"],
+                       "embed_p50": ev["embedding"]["latency_p50_ms"]},
+        "ann_overlap10": fid["overlap@10_mean"],
+        "embargoed_rows": ev["embargo"]["embargoed_rows_visible_to_session_user"],
+        "posting_fix": None, "tests": None,
+    }
+    m = re.search(r"^\| NDL_SENIOR \| BM25_SEARCH top 10 \| ([\d.]+) / [\d.]+ \| ([\d.]+) / [\d.]+ \|",
+                  (ROOT / "docs" / "evidence" / "rcac_posting_overhead.md").read_text(encoding="utf-8"), re.M)
+    if m:
+        out["posting_fix"] = {"before_ms": float(m.group(1)), "after_ms": float(m.group(2)),
+                              "file": "docs/evidence/rcac_posting_overhead.md"}
+    t = re.search(r"(\d+) passed(?:, (\d+) skipped)?", (ROOT / "docs" / "evidence" / "pytest.txt").read_text(encoding="utf-8"))
+    if t:
+        out["tests"] = {"passed": int(t.group(1)), "skipped": int(t.group(2) or 0), "file": "docs/evidence/pytest.txt"}
+    return out
 
 
 _EXPLAIN_SECTIONS = ("APPROX_bound", "APPROX_k_param")

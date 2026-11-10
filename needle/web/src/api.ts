@@ -46,11 +46,20 @@ export interface Finding {
   selectivity: { split: string; n_queries: number; db2: string; series: { rcac: SeriesPoint[]; router: SeriesPoint[]; where: SeriesPoint[] } };
   estimate: { permission_ff: number; vector_ixscan_est_rows: number; srchlsiz: number; steps: string[]; same_estimate_every_step: boolean };
   correlated: { queries: number; p10_zero_rows: number; p10_recall_zero: number; coverage_by_p: Record<string, number> };
+  literal_control: { heldout_recall: number; all_recall: number; all_returned: number };
   plan_cache: {
     statement: string; order: string; distinct_executable_ids: number;
     steps: { user: string; cache_entries: number; executable_id: string; executions: number; rows_read: number; rows_returned: number; queries: number }[];
   };
   sources: Record<string, string>;
+}
+export interface Stats {
+  eval_run: { file: string; run_id: string; session_user: string; queries: number; per_slice: number };
+  recall10: Record<"named" | "masked" | "paraphrase", Record<"triage" | "approx" | "bm25" | "exact", number>>;
+  latency_ms: { triage_p50: number; triage_p95: number; approx_p50: number; exact_p50: number; embed_p50: number };
+  ann_overlap10: number; embargoed_rows: number;
+  posting_fix: { before_ms: number; after_ms: number; file: string } | null;
+  tests: { passed: number; skipped: number; file: string } | null;
 }
 export interface ExplainPlan { name: string; sql: string; explain_time: string | null; total_cost: number | null; uses_vector_index: boolean | null; plan: string }
 export interface CompareIdentity extends Partial<TriageResult> { user: string; role: string; embargoed_ids?: string[] }
@@ -92,6 +101,7 @@ export const api = {
   memo: (mode: Mode) => call<Memo>("/api/memo", { mode }),
   compare: (query: string, k: number) => call<Compare>("/api/compare", { query, k }),
   finding: () => call<Finding>("/api/finding"),
+  stats: () => call<Stats>("/api/stats"),
   explain: () => call<{ source: string; plans: ExplainPlan[] }>("/api/explain"),
 };
 
