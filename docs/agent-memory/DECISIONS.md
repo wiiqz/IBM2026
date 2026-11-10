@@ -25,3 +25,5 @@
 - 2026-11-10 ~00:45 CST, user decision: `research/competition.md` (grades other teams' PRs) and `research/organizers.md`
   (profiles organizers and judges) are **deleted from the repo** so a judge browsing it cannot find them; do not
   restore or recreate them. They remain in git history only. Consults, CONTRACT.md, PLAN.md and reviews may stay.
+  Same decision for `research/RESEARCH_BRIEF.md`, `research/debate/` and `research/william_session1/` (judge
+  profiles / simulated judge panel): removed from the repo, kept local on William's Mac, listed in `.gitignore`.

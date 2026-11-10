@@ -17,3 +17,10 @@ node_modules/
 
 # exported chat transcript (never commit)
 ibm26.txt
+
+# judge/competitor profiling notes: keep local only (user decision 2026-11-10)
+research/RESEARCH_BRIEF.md
+research/debate/
+research/william_session1/
+research/competition.md
+research/organizers.md
