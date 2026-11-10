@@ -87,7 +87,32 @@ function Hero() {
     return () => { disposed = true; io.disconnect(); sceneRef.current?.dispose(); sceneRef.current = null; };
   }, []);
 
-  useEffect(() => { if (query) sceneRef.current?.setState(query, lens); }, [query, lens, ready]);
+  // Scroll story (desktop): the stage pins and four chapters step the scene through the finding.
+  const storyRef = useRef<HTMLElement>(null);
+  const [chapter, setChapter] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const on = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = storyRef.current;
+        if (!el || innerWidth < 1024) { setChapter(0); return; }
+        const r = el.getBoundingClientRect();
+        const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
+        setChapter(p < 0.08 ? 0 : Math.min(4, 1 + Math.floor(((p - 0.08) / 0.92) * 4)));
+      });
+    };
+    addEventListener("scroll", on, { passive: true });
+    addEventListener("resize", on);
+    on();
+    return () => { removeEventListener("scroll", on); removeEventListener("resize", on); cancelAnimationFrame(raf); };
+  }, []);
+  const storyQuery = info?.queries.find((x) => x.key === "pyyaml");
+  const effQuery = chapter === 0 ? query : storyQuery;
+  const effLens: Lens = chapter === 0 ? lens : chapter === 3 ? "p10-shared" : chapter === 4 ? "p10-router" : "all";
+
+  useEffect(() => { if (effQuery) sceneRef.current?.setState(effQuery, effLens); }, [effQuery, effLens, ready]);
+  useEffect(() => { sceneRef.current?.setStory([0, 0, 0.55, 0.7, 0.5][chapter], chapter !== 1); }, [chapter, ready]);
   useEffect(() => { sceneRef.current?.setAuto(!paused); }, [paused, ready]);
 
   const batchVisible = query?.batch_visible_p10 ?? 0;
@@ -96,8 +121,21 @@ function Hero() {
       : lens === "p10-shared" ? { n: `${batchVisible} of 10`, tone: "text-affected-ink", line: `The vector index fetches the ${info.batch} nearest, sized as if this analyst saw half the rows. The permission removes ${info.batch - batchVisible} (red). ${batchVisible} ${batchVisible === 1 ? "comes" : "come"} back.` }
         : { n: "10 of 10", tone: "text-[#5fdbe3]", line: `NEEDLE counts the ${fmt.int(info.p10_visible)} rows this analyst may read and runs an exact scan over them instead.` };
 
+  const sv = storyQuery?.batch_visible_p10 ?? 0;
+  const chapters = !info ? [] : [
+    { name: "The corpus", title: `${fmt.int(info.n)} advisories, placed by meaning`,
+      body: "Each point is a real Python security advisory. Points that sit close together mean similar things, so even a vague question lands next to the advisories it is about." },
+    { name: "The search", title: "A question arrives",
+      body: "The question becomes a vector. Db2's vector index walks its graph toward it, one neighbour at a time, and collects the nearest advisories. Keyword search runs in the same SQL statement." },
+    { name: "The permission", title: `Ask for 10. Get ${sv}.`,
+      body: `An analyst who may read ${fmt.int(info.p10_visible)} advisories asks for 10. The shared plan fetches the ${info.batch} nearest as if everyone saw half the rows; row access control removes ${info.batch - sv} of them (red), and ${sv} ${sv === 1 ? "comes" : "come"} back.` },
+    { name: "The router", title: "Count first, then search",
+      body: `NEEDLE counts the ${fmt.int(info.p10_visible)} rows this analyst may read, then runs an exact scan over them. 10 of 10 come back, and none from outside the permission.` },
+  ];
+
   return (
-    <section aria-label="NEEDLE" className={`relative overflow-hidden bg-[#0b0d0e] text-paper ${paused ? "hero-paused" : ""}`} data-testid="hero">
+    <section ref={storyRef} aria-label="NEEDLE" className={`relative bg-[#0a0c0d] text-paper ${paused ? "hero-paused" : ""}`} data-testid="hero">
+      <div className="relative overflow-hidden lg:sticky lg:top-14">
       <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse 58% 62% at 66% 46%, #172124 0%, #0f1416 52%, #0a0c0d 100%)" }} />
 
       <div className="relative grid min-h-[calc(100svh-56px)] lg:block lg:h-[calc(100svh-56px)] lg:max-h-[1000px] lg:min-h-[640px]">
@@ -110,7 +148,8 @@ function Hero() {
         </div>
         {nogl && <p className="absolute top-6 left-6 text-sm text-slab-mute">The 3D view needs WebGL; everything below works without it.</p>}
 
-        <div className="pointer-events-none relative z-10 mx-auto flex max-w-[1600px] flex-col justify-end gap-8 px-4 pb-10 sm:px-6 lg:h-full lg:px-8 lg:pb-14">
+        <div className={`pointer-events-none relative z-10 mx-auto flex max-w-[1600px] flex-col justify-end gap-8 px-4 pb-10 transition-opacity duration-300 ease-out sm:px-6 lg:h-full lg:px-8 lg:pb-14 ${chapter ? "lg:opacity-0" : ""}`}
+          style={chapter ? { visibility: "hidden" } : undefined}>
           <div className="pointer-events-auto hidden max-w-[40ch] lg:absolute lg:top-8 lg:block">
             <p className="font-mono text-[11px] leading-4 text-slab-mute">
               {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning (nomic-embed-text, 768 dimensions to 3D by PCA). The faint lines link near neighbours; the pulses walk them toward the question, the way a DiskANN index search moves (an illustration). Drag to turn.` : "\u00a0"}
@@ -147,6 +186,36 @@ function Hero() {
             )}
           </div>
         </div>
+        {chapter > 0 && chapters[chapter - 1] && (
+          <div aria-hidden key={chapter} className="fade-in pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden lg:block">
+            <div className="absolute inset-0 -top-40" style={{ background: "radial-gradient(70% 100% at 0% 100%, rgba(10,12,13,.92) 0%, rgba(10,12,13,.6) 45%, transparent 75%)" }} />
+            <div className="relative mx-auto max-w-[1600px] px-8 pb-16">
+              <h2 className="max-w-[16ch] font-display text-[clamp(2.6rem,4.6vw,4.6rem)] leading-[0.95] font-semibold tracking-[-0.035em]">{chapters[chapter - 1].title}</h2>
+              <p className="mt-5 max-w-[52ch] text-[17px] leading-7 text-[#c9d2d5]">{chapters[chapter - 1].body}</p>
+              {chapter === chapters.length && <a href="#/triage" className="btn btn-primary pointer-events-auto mt-7 no-underline">Open the triage console</a>}
+            </div>
+          </div>
+        )}
+        {chapters.length > 0 && (
+          <ol aria-hidden className={`absolute top-8 right-8 z-10 hidden gap-2 text-right transition-opacity duration-300 lg:grid ${chapter ? "opacity-100" : "opacity-0"}`}>
+            {chapters.map((c, i) => (
+              <li key={c.name} className={`flex items-center justify-end gap-2.5 text-xs transition-colors duration-200 ${chapter === i + 1 ? "text-paper" : "text-slab-mute"}`}>
+                {c.name}<span className={`h-px transition-all duration-300 ${chapter === i + 1 ? "w-8 bg-accent" : "w-4 bg-slab-rule"}`} />
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+      </div>
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8" data-testid="story-chapters">
+        {chapters.map((c) => (
+          <article key={c.name} className="border-t border-slab-rule py-10 lg:flex lg:h-[100svh] lg:items-end lg:border-0 lg:py-0 lg:opacity-0">
+            <div>
+              <h2 className="font-display text-3xl font-semibold tracking-[-0.025em]">{c.title}</h2>
+              <p className="mt-3 max-w-[52ch] text-md text-[#c9d2d5]">{c.body}</p>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );

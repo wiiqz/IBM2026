@@ -192,6 +192,10 @@ export class CloudScene {
   private needlePos = new THREE.Vector3();
   private needleTarget = new THREE.Vector3();
   private t0 = performance.now();
+  private focus = 0;          // 0 wide .. 1 close to the question (scroll story)
+  private focusTarget = 0;
+  private showQuery = true;
+  private baseDist = 5.6;
   private seed = 11;
   private ro: ResizeObserver;
   onFrame?: (screen: { x: number; y: number } | null) => void;
@@ -343,7 +347,17 @@ export class CloudScene {
   /** Pause / resume the idle motion: turn, needle pulse and search walks (the stage's "Pause motion"). */
   setAuto(on: boolean) {
     this.auto = on;
-    this.pulse.visible = on && !this.still;
+    this.pulse.visible = on && !this.still && this.showQuery;
+  }
+
+  /** Scroll story: how close the camera sits to the question, and whether the question is shown at all. */
+  setStory(focus: number, showQuery: boolean) {
+    this.focusTarget = focus;
+    if (this.still) this.focus = focus;
+    this.showQuery = showQuery;
+    for (const o of [this.needle, this.tip, this.lines, this.hl, this.halo, ...this.walks.map((w) => w.line)]) o.visible = showQuery;
+    this.pulse.visible = showQuery && this.auto && !this.still;
+    this.render();
   }
 
   setRunning(on: boolean) {
@@ -361,6 +375,7 @@ export class CloudScene {
     this.camera.aspect = w / h;
     const wide = w / h > 1.25;
     const dist = wide ? 5.6 : 6.6;
+    this.baseDist = dist;
     this.camera.position.set(0, 0, dist);
     this.mat.uniforms.uCamDist.value = dist;
     this.edgeMat.uniforms.uCamDist.value = dist;
@@ -448,12 +463,22 @@ export class CloudScene {
 
   private render() {
     this.group.rotation.set(this.rotX, this.rotY, 0);
+    this.group.updateMatrixWorld();
+    if (this.focus > 0.001) {
+      const nw = this.needlePos.clone().applyMatrix4(this.group.matrixWorld);
+      const f = this.focus * this.focus * (3 - 2 * this.focus);
+      this.camera.position.set(nw.x * f, nw.y * f, this.baseDist + (nw.z + this.baseDist * 0.42 - this.baseDist) * f);
+      this.camera.lookAt(nw.x * f, nw.y * f, nw.z * f);
+    } else {
+      this.camera.position.set(0, 0, this.baseDist);
+      this.camera.lookAt(0, 0, 0);
+    }
     (this.pulse.material as THREE.ShaderMaterial).uniforms.uTime.value = this.now();
     this.composer.render();
     if (this.onFrame) {
       const v = this.needlePos.clone().applyMatrix4(this.group.matrixWorld).project(this.camera);
       const w = this.host.clientWidth, h = this.host.clientHeight;
-      this.onFrame(v.z < 1 ? { x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h } : null);
+      this.onFrame(v.z < 1 && this.showQuery ? { x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h } : null);
     }
   }
 
@@ -462,7 +487,8 @@ export class CloudScene {
     if (!this.running) return;
     if (!this.still) {
       const now = this.now();
-      if (!this.dragging) { this.velY *= 0.94; this.rotY += this.velY + (this.auto ? 0.0011 : 0); }
+      if (!this.dragging) { this.velY *= 0.94; this.rotY += this.velY + (this.auto ? 0.0011 * (1 - 0.7 * this.focus) : 0); }
+      this.focus += (this.focusTarget - this.focus) * 0.06;
       if (this.fadeT < 1) { this.fadeT = Math.min(1, this.fadeT + 1 / 42); this.mat.uniforms.uFade.value = 1 - (1 - this.fadeT) ** 3; }
       if (this.needlePos.distanceToSquared(this.needleTarget) > 1e-6) { this.needlePos.lerp(this.needleTarget, 0.12); this.updateNeedle(); }
       for (const w of this.walks) {
@@ -474,6 +500,7 @@ export class CloudScene {
       }
     } else {
       this.mat.uniforms.uFade.value = 1;
+      this.focus = this.focusTarget;
     }
     this.render();
     if (!this.still) this.raf = requestAnimationFrame(this.loop);

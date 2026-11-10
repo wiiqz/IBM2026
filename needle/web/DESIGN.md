@@ -81,3 +81,8 @@ visible. The synthetic fleet is labelled.
 - **Scroll:** Lenis 1.3.27, lerp 0.1 on wheel only, native on touch and under reduced motion; inner scrollers
   carry `data-lenis-prevent`.
 - **Type:** Red Hat Display for the two display lines (same family as the UI text).
+- **Scroll story (desktop, owner request):** the stage pins under the header for four chapters (the corpus, the
+  search, the permission, the router). Each chapter switches the scene state the hero already has, and the camera
+  eases toward the question (focus 0 / 0.55 / 0.7 / 0.5). One canvas, native scroll position (Lenis), a progress rail
+  instead of eyebrow labels, and every number from `cloud.json`. On phones and for screen readers the chapters are
+  plain text after the hero. Reduced motion changes chapters without camera travel.
