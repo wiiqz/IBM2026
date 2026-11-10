@@ -138,8 +138,10 @@ bash scripts/setup_db.sh --with-users || die "scripts/setup_db.sh --with-users"
 # ---------------------------------------------------------------------------------------------------------------
 step "4. Python environment"
 [[ -x .venv/bin/python ]] || python3 -m venv .venv
+set +u   # the venv activate script is not written for nounset
 # shellcheck disable=SC1091
 . .venv/bin/activate
+set -u
 python --version
 pip install -q --disable-pip-version-check -r requirements.txt || die "pip install -r requirements.txt"
 export PYTHONPATH=src
@@ -192,7 +194,7 @@ step "8. Smoke check"
 SMOKE="data/logs/bootstrap_smoke_$(date +%Y%m%d_%H%M%S).log"
 if [[ "$MODE" == "sample" ]]; then
   python scripts/run_sample_queries.py > "$SMOKE" 2>&1 || { cat "$SMOKE"; die "scripts/run_sample_queries.py"; }
-  grep -E "visible rows|exposure join|vector leg|SAMPLE MODE OK" "$SMOKE" | cut -c1-200
+  grep -E "visible rows|exposure join|vector leg|SAMPLE MODE OK" "$SMOKE" | cut -c1-200 || true
   grep -q "SAMPLE MODE OK" "$SMOKE" || die "smoke check (see $SMOKE)"
 else
   python - > "$SMOKE" 2>&1 <<'EOF' || { cat "$SMOKE"; die "full-mode row counts"; }
