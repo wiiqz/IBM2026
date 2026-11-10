@@ -215,6 +215,13 @@ export class CloudScene {
 
   private onVis = () => { this.running = !document.hidden; if (this.running) this.loop(); };
 
+  private auto = true;
+  /** Pause / resume the idle turn and the needle pulse (the stage's "Pause motion" control). */
+  setAuto(on: boolean) {
+    this.auto = on;
+    this.pulse.visible = on && !this.still;
+  }
+
   setRunning(on: boolean) {
     if (on === this.running) return;
     this.running = on;
@@ -333,7 +340,7 @@ export class CloudScene {
     cancelAnimationFrame(this.raf);
     if (!this.running) return;
     if (!this.still) {
-      if (!this.dragging) { this.velY *= 0.94; this.rotY += this.velY + 0.0011; }
+      if (!this.dragging) { this.velY *= 0.94; this.rotY += this.velY + (this.auto ? 0.0011 : 0); }
       if (this.fadeT < 1) { this.fadeT = Math.min(1, this.fadeT + 1 / 42); this.mat.uniforms.uFade.value = 1 - (1 - this.fadeT) ** 3; }
       if (this.needlePos.distanceToSquared(this.needleTarget) > 1e-6) { this.needlePos.lerp(this.needleTarget, 0.12); this.updateNeedle(); }
     } else {

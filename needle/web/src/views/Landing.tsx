@@ -54,6 +54,7 @@ function Hero() {
   const [plan, setPlan] = useState<"shared" | "router">("shared");
   const [ready, setReady] = useState(false);
   const [nogl, setNogl] = useState(false);
+  const [paused, setPaused] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
   const lens: Lens = who === "all" ? "all" : plan === "shared" ? "p10-shared" : "p10-router";
   const query: CloudQuery | undefined = info?.queries.find((x) => x.key === q);
 
@@ -87,6 +88,7 @@ function Hero() {
   }, []);
 
   useEffect(() => { if (query) sceneRef.current?.setState(query, lens); }, [query, lens, ready]);
+  useEffect(() => { sceneRef.current?.setAuto(!paused); }, [paused, ready]);
 
   const batchVisible = query?.batch_visible_p10 ?? 0;
   const readout = !info || !query ? null
@@ -95,7 +97,7 @@ function Hero() {
         : { n: "10 of 10", tone: "text-[#5fdbe3]", line: `NEEDLE counts the ${fmt.int(info.p10_visible)} rows this analyst may read and runs an exact scan over them instead.` };
 
   return (
-    <section aria-label="NEEDLE" className="relative overflow-hidden bg-[#0b0d0e] text-paper" data-testid="hero">
+    <section aria-label="NEEDLE" className={`relative overflow-hidden bg-[#0b0d0e] text-paper ${paused ? "hero-paused" : ""}`} data-testid="hero">
       <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse 58% 62% at 66% 46%, #172124 0%, #0f1416 52%, #0a0c0d 100%)" }} />
       <div aria-hidden className="hero-glow" />
       <div aria-hidden className="hero-vignette" />
@@ -109,9 +111,15 @@ function Hero() {
         {nogl && <p className="absolute top-6 left-6 text-sm text-slab-mute">The 3D view needs WebGL; everything below works without it.</p>}
 
         <div className="pointer-events-none relative z-10 mx-auto flex max-w-[1600px] flex-col justify-end gap-8 px-4 pb-10 sm:px-6 lg:h-full lg:px-8 lg:pb-14">
-          <p className="pointer-events-auto hidden max-w-[34ch] font-mono text-[11px] leading-4 text-slab-mute lg:absolute lg:top-8 lg:block">
-            {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning: nomic-embed-text, 768 dimensions to 3D by PCA. Drag to turn.` : " "}
-          </p>
+          <div className="pointer-events-auto hidden max-w-[34ch] lg:absolute lg:top-8 lg:block">
+            <p className="font-mono text-[11px] leading-4 text-slab-mute">
+              {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning: nomic-embed-text, 768 dimensions to 3D by PCA. Drag to turn.` : "\u00a0"}
+            </p>
+            <button onClick={() => setPaused(!paused)} aria-pressed={paused} data-testid="pause-motion"
+              className="mt-3 rounded-[4px] border border-slab-rule px-2.5 py-1 text-xs text-[#c9d2d5] transition-colors duration-150 hover:border-slab-mute hover:text-paper">
+              {paused ? "Play motion" : "Pause motion"}
+            </button>
+          </div>
           <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
             <div className="pointer-events-auto">
               <h1 className="font-display text-[clamp(3.4rem,8.6vw,8.75rem)] leading-[0.86] font-semibold tracking-[-0.045em]">
