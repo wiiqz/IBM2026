@@ -38,7 +38,8 @@ export function Dot({ ok, label, detail }: { ok: boolean | null; label: string; 
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-mute" title={detail}>
       <span className={`size-2 rounded-full ${c} ${ok === false ? "ring-2 ring-affected/20" : ""}`} aria-hidden />
-      <span>{label}</span>
+      <span className="hidden md:inline">{label}</span>
+      <span className="sr-only md:hidden">{label} </span>
       <span className="sr-only">{ok == null ? "checking" : ok ? "available" : "unavailable"}</span>
     </span>
   );

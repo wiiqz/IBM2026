@@ -10,24 +10,25 @@ const HEAD: Record<Mode, { title: string; how: string }> = {
 
 export default function Rankings({ result, mode }: { result: TriageResult; mode: Mode }) {
   const [open, setOpen] = useState<Doc | null>(null);
+  const [hot, setHot] = useState<string | null>(null); // hovered id, lit in every leg
   const fleet = useMemo(() => new Set(result.exposure.map((r) => r.PACKAGE.toLowerCase())), [result]);
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-3">
         {MODES.map((m) => (
-          <div key={m} className={`panel min-w-0 overflow-hidden ${m === mode ? "border-t-[3px] border-t-accent" : "border-t-[3px] border-t-hair"}`} data-testid={`rank-${m}`}>
-            <div className="flex items-baseline justify-between gap-3 border-b border-hair px-4 py-2.5">
-              <h3 className="flex items-baseline gap-2 text-sm font-semibold">{HEAD[m].title}
-                <span className={`font-mono text-[11px] font-medium num ${result.rankings[m].length < result.k ? "text-affected" : "text-mute"}`}>top {result.k}: {result.rankings[m].length} rows</span>
+          <div key={m} className={`panel min-w-0 overflow-hidden ${m === mode ? "border-t-[3px] border-t-accent" : "hidden border-t-[3px] border-t-hair lg:block"}`} data-testid={`rank-${m}`}>
+            <div className="border-b border-hair px-4 py-2.5">
+              <h3 className="flex items-baseline justify-between gap-3 text-sm font-semibold">{HEAD[m].title}
+                <span className={`font-mono text-[11px] font-medium whitespace-nowrap num ${result.rankings[m].length < result.k ? "text-affected" : "text-mute"}`}>top {result.k}: {result.rankings[m].length} rows</span>
               </h3>
-              <span className="truncate text-xs text-mute">{HEAD[m].how}</span>
+              <p className="mt-0.5 truncate text-xs text-mute">{HEAD[m].how}</p>
             </div>
             {result.rankings[m].length === 0 ? (
               <p className="px-4 py-6 text-sm text-mute">No candidates in this leg for {result.user}.</p>
             ) : (
               <ol>
                 {result.rankings[m].map((r) => (
-                  <Row key={r.id} r={r} mode={m} doc={result.docs[r.id]} fleet={fleet} onOpen={setOpen} />
+                  <Row key={r.id} r={r} mode={m} doc={result.docs[r.id]} fleet={fleet} onOpen={setOpen} hot={hot === r.id} onHot={setHot} />
                 ))}
               </ol>
             )}
@@ -44,16 +45,19 @@ export default function Rankings({ result, mode }: { result: TriageResult; mode:
   );
 }
 
-function Row({ r, mode, doc, fleet, onOpen }: { r: Ranked; mode: Mode; doc?: Doc; fleet: Set<string>; onOpen: (d: Doc) => void }) {
+function Row({ r, mode, doc, fleet, onOpen, hot, onHot }: {
+  r: Ranked; mode: Mode; doc?: Doc; fleet: Set<string>; onOpen: (d: Doc) => void; hot: boolean; onHot: (id: string | null) => void;
+}) {
   const pkg = doc?.packages[0] ?? "";
   const inFleet = !!doc?.packages.some((p) => fleet.has(p.toLowerCase()));
   return (
-    <li className="group grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-start gap-x-2 border-b border-hair px-4 py-2 transition-colors duration-150 last:border-b-0 hover:bg-ground">
+    <li onMouseEnter={() => onHot(r.id)} onMouseLeave={() => onHot(null)} onFocus={() => onHot(r.id)} onBlur={() => onHot(null)}
+      className={`group grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-start gap-x-2 border-b border-hair px-4 py-2 transition-colors duration-150 last:border-b-0 ${hot ? "bg-accent-wash" : ""}`}>
       <span className="pt-px font-mono text-xs text-mute num">{r.rank}</span>
       <span className="min-w-0">
         <span className="flex min-w-0 items-center gap-2">
           <a href={doc?.osv ?? `https://osv.dev/vulnerability/${r.id}`} target="_blank" rel="noreferrer noopener"
-            className="truncate font-mono text-[13px] font-semibold text-ink no-underline hover:text-accent-strong hover:underline">{r.id}</a>
+            className="truncate font-mono text-[13px] font-semibold text-ink underline decoration-rule decoration-1 underline-offset-[3px] hover:text-accent-strong hover:decoration-accent-strong">{r.id}</a>
           {doc?.embargoed && <Tag tone="red" title={`Embargoed until ${doc.embargo_until?.slice(0, 10)}`}>EMBARGOED</Tag>}
         </span>
         <button onClick={() => doc && onOpen(doc)} title="Show the advisory"

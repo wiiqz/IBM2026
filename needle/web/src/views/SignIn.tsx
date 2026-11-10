@@ -38,7 +38,7 @@ export default function SignIn({ demo, demoUsers, health, onSignedIn }: {
   return (
     <div className="grid gap-10 pt-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,440px)] lg:gap-16 lg:pt-12">
       <section className="max-w-[720px]">
-        <h1 className="text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">Which services does this advisory hit?</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.02em]">Which services does this advisory hit?</h1>
         <p className="mt-4 max-w-[60ch] text-md text-ink-2">
           Paste a security report, even a vague chat message with no CVE. NEEDLE searches the OSV Python advisories
           inside IBM Db2, shows only what your Db2 identity may see, and names the affected services.
@@ -70,9 +70,6 @@ export default function SignIn({ demo, demoUsers, health, onSignedIn }: {
                 </button>
               ))}
             </div>
-            <p className="mt-4 rounded-[3px] bg-ink px-2 py-1 font-mono text-[11px] font-semibold tracking-[0.02em] text-amber-ink">
-              DEMO IDENTITY SWITCHER — NOT AUTHENTICATION
-            </p>
           </>
         ) : (
           <form onSubmit={submit} className="mt-5 grid gap-4" autoComplete="on">

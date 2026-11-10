@@ -60,7 +60,7 @@ export default function Verdict({ result, modeIds, mode }: { result: TriageResul
       <p className="border-t border-slab-rule px-5 py-2.5 text-xs text-slab-mute sm:px-6">
         <span className="mr-2 rounded-[3px] border border-amber-ink/60 px-1.5 py-[1px] font-mono text-[11px] font-semibold text-amber-ink">SYNTHETIC FLEET</span>
         Fictional services, real PyPI versions. Counts are services, from the top {modeIds.size} {mode} advisories. AFFECTED
-        means an exact package and version match; nothing here is ever called safe.
+        means an exact package and version match; every other status still needs a person to look.
       </p>
     </section>
   );

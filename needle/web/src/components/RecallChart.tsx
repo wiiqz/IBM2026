@@ -14,8 +14,8 @@ type Key = (typeof SERIES)[number]["key"];
 const H = 260, M = { t: 14, r: 16, b: 44, l: 44 };
 const XT = [10, 25, 50, 75, 100];
 
-export default function RecallChart({ data, metric, title }: {
-  data: Record<Key, SeriesPoint[]>; metric: "recall" | "rows"; title: string;
+export default function RecallChart({ data, metric, title, annotate = false }: {
+  data: Record<Key, SeriesPoint[]>; metric: "recall" | "rows"; title: string; annotate?: boolean;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   // Draw at the real pixel width so 11px text stays 11px (no viewBox scaling).
@@ -64,6 +64,17 @@ export default function RecallChart({ data, metric, title }: {
               </g>
             );
           })}
+          {annotate && (() => {
+            const a = data.rcac[0], b = data.router[0];
+            const ax = x(a.x) + 14, y1 = y(a[metric]), y2 = y(b[metric]);
+            return (
+              <g aria-hidden>
+                <path d={`M${ax - 6},${y1} H${ax} V${y2 + 6} M${ax - 4},${y2 + 10} L${ax},${y2 + 4} L${ax + 4},${y2 + 10}`} fill="none" stroke="#101213" strokeWidth={1.25} />
+                <text x={ax + 8} y={(y1 + y2) / 2} dy="-0.2em" className="fill-ink font-mono text-[12px] font-semibold" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">{fmtY(a[metric])} → {fmtY(b[metric])}</text>
+                <text x={ax + 8} y={(y1 + y2) / 2} dy="1.1em" className="fill-mute text-[11px]" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">at {Math.round(a.x)}% visible, with the router</text>
+              </g>
+            );
+          })()}
           {XT.map((t, i) => (
             <rect key={t} x={x(t) - 28} y={M.t} width={56} height={H - M.t - M.b} fill="transparent"
               onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} tabIndex={0} aria-label={`${t}% visible`} />

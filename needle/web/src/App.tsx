@@ -92,8 +92,9 @@ export default function App() {
               </a>
             ))}
           </nav>
+          <p className="hidden min-w-0 truncate text-xs text-mute xl:block">Permission-aware hybrid search for vulnerability triage, inside IBM Db2 12.1.5</p>
           <div className="ml-auto flex shrink-0 items-center gap-5">
-            <div className="hidden items-center gap-4 md:flex">
+            <div className="flex items-center gap-2.5 md:gap-4">
               <Dot ok={healthErr ? false : health ? health.db.ok : null} label={`Db2 ${health?.db.database ?? ""}`.trim()}
                 detail={healthErr ? "API not reachable" : health?.db.detail} />
               <Dot ok={healthErr ? false : health ? health.ollama.ok : null} label="Ollama"

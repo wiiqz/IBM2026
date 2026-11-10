@@ -30,12 +30,26 @@ export default function FindingView({ session, demo }: { session: Session | null
           </p>
         </div>
         <dl className="grid grid-cols-2 gap-px self-end overflow-hidden rounded-[6px] border border-hair bg-hair">
-          <Stat value={fmt.dec(p10.recall)} label={`recall@${k} for an analyst who sees ${Math.round(p10.x)}% of rows`} red />
-          <Stat value={fmt.dec(p10.rows, 2)} label={`rows returned of ${k}, same analyst`} red />
-          <Stat value={fmt.dec(f.estimate.permission_ff)} label="the optimizer's one estimate of the permission, for every user" />
-          <Stat value={fmt.int(f.estimate.vector_ixscan_est_rows)} label={`candidates the vector index fetches for k = ${k}`} />
+          <Stat value={fmt.dec(p10.recall)} label={`recall@${k} at ${Math.round(p10.x)}% visible`} red />
+          <Stat value={fmt.dec(p10.rows, 2)} label={`rows of ${k} returned`} red />
+          <Stat value={fmt.dec(f.estimate.permission_ff)} label="permission estimate, every user" />
+          <Stat value={fmt.int(f.estimate.vector_ixscan_est_rows)} label={`index candidates for k = ${k}`} />
         </dl>
       </header>
+
+      <section aria-label="Recall against visibility" className="grid gap-4" data-testid="finding-charts">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <Legend />
+          <p className="text-xs text-mute">
+            {f.selectivity.n_queries} held-out queries, {f.selectivity.db2} ·{" "}
+            <a href={evidenceUrl(f.sources.selectivity)} target="_blank" rel="noreferrer">{f.sources.selectivity}</a>
+          </p>
+        </div>
+        <div className="grid gap-8 md:grid-cols-2">
+          <RecallChart data={data} metric="recall" title={`Recall@${k}`} annotate />
+          <RecallChart data={data} metric="rows" title={`Rows returned of ${k}`} annotate />
+        </div>
+      </section>
 
       <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16">
         <div className="max-w-[64ch] text-[15px] leading-7 text-ink-2">
@@ -60,20 +74,8 @@ export default function FindingView({ session, demo }: { session: Session | null
             top-k interaction, not an RCAC defect. RCAC makes it unavoidable, and invisible to the application.
           </p>
         </div>
-        <div className="grid content-start gap-4">
-          <Legend />
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            <RecallChart data={data} metric="recall" title={`Recall@${k}`} />
-            <RecallChart data={data} metric="rows" title={`Rows returned of ${k}`} />
-          </div>
-          <p className="text-xs text-mute">
-            {f.selectivity.n_queries} held-out queries, {f.selectivity.db2}. Source{" "}
-            <a href={evidenceUrl(f.sources.selectivity)} target="_blank" rel="noreferrer">{f.sources.selectivity}</a>.
-          </p>
-        </div>
+        <PlanCache f={f} k={k} />
       </section>
-
-      <PlanCache f={f} k={k} />
 
       <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16">
         <div className="max-w-[64ch] text-[15px] leading-7 text-ink-2">
@@ -139,18 +141,10 @@ function Stat({ value, label, red }: { value: string; label: string; red?: boole
 function PlanCache({ f, k }: { f: Finding; k: number }) {
   const pc = f.plan_cache;
   return (
-    <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16" data-testid="plan-cache">
-      <div className="max-w-[64ch] text-[15px] leading-7 text-ink-2">
-        <h2 className="mb-3 text-xl font-semibold tracking-[-0.01em] text-ink">One plan for everyone</h2>
-        <p>
-          The package cache after each identity ran the same {pc.steps[0]?.queries ?? k} vector queries. There is one
-          entry and <b className="font-mono text-ink">{pc.distinct_executable_ids}</b> executable id for all of them,
-          and every identity reads the same rows. Only the rows that survive the permission differ.
-        </p>
-        <pre className="code mt-4 text-[11.5px] whitespace-pre-wrap">{pc.statement}</pre>
-      </div>
-      <div className="panel self-start overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-sm">
+    <div className="grid content-start gap-3" data-testid="plan-cache">
+      <h3 className="text-sm font-semibold">One plan for everyone: the package cache after each identity</h3>
+      <div className="panel overflow-x-auto">
+        <table className="w-full min-w-[540px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-hair bg-surface/60 text-left text-xs text-mute">
               <th className="px-4 py-2 font-medium">After identity</th>
@@ -177,10 +171,11 @@ function PlanCache({ f, k }: { f: Finding; k: number }) {
           </tbody>
         </table>
         <p className="border-t border-hair px-4 py-2 text-xs text-mute">
-          MON_GET_PKG_CACHE_STMT deltas, package cache flushed first. Source{" "}
-          <a href={evidenceUrl(f.sources.plan_cache)} target="_blank" rel="noreferrer">{f.sources.plan_cache}</a>.
+          {pc.distinct_executable_ids} executable id, {pc.steps[0]?.queries ?? k} queries per identity, package cache flushed first ·{" "}
+          <a href={evidenceUrl(f.sources.plan_cache)} target="_blank" rel="noreferrer">{f.sources.plan_cache}</a>
         </p>
       </div>
-    </section>
+      <pre className="code text-[11.5px] whitespace-pre-wrap">{pc.statement}</pre>
+    </div>
   );
 }
