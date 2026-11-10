@@ -27,7 +27,7 @@ Character count: 1,214 with the placeholders; 1,296 with a youtu.be link and a f
 
 Tag: Gaurav Saxena (linkedin.com/in/gaurav-saxena-95044594/), Daya Nand (linkedin.com/in/2mrdaya/), Dhruv Chaturvedi (linkedin.com/in/dhruvinsights/), Keshav Maheshwari (linkedin.com/in/keshav-maheshwari-666738186/), Kunal Gola (linkedin.com/in/kunal-gola-459030203/), Pawan Thakur (linkedin.com/in/pawanthakurindia/), Shaik Sadiq (linkedin.com/in/shaik-sadiq-068a39242/); pages: IBM, GL Bajaj Group of Institutions (Mathura), Institution's Innovation Council (IIC), NexaSphere. The IBM company-page handle is UNKNOWN; pick it from LinkedIn's @ menu.
 
-Organizer hashtags (from research/organizers.md; the post uses 5 of them to stay short): #IBMDb2TechXSummit2026 #Db2TechXSummit2026 #IBM #IBMDb2 #Db2 #Db2Hack #Db2Hackathon #LangChain #Haystack #VectorSearch #AgenticAI #GenerativeAI #OpenSource #GLBajajMathura #IIC #NexaSphere
+Organizer hashtags (the post uses 5 of them to stay short): #IBMDb2TechXSummit2026 #Db2TechXSummit2026 #IBM #IBMDb2 #Db2 #Db2Hack #Db2Hackathon #LangChain #Haystack #VectorSearch #AgenticAI #GenerativeAI #OpenSource #GLBajajMathura #IIC #NexaSphere
 
 How to tag without adding text to the body: post first, then add the tags in the first comment ("Thank you @... @..."), or add them as photo tags on the attached screenshot. Both keep the body under the limit.
 
