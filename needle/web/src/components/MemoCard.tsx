@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, ApiError, type Memo, type Mode, type TriageResult } from "../api";
 import { ErrorState } from "./ui";
+import { useElapsed } from "../views/Triage";
 
 export default function MemoCard({ result, mode, memo, setMemo }: {
   result: TriageResult; mode: Mode; memo: Memo | null; setMemo: (m: Memo | null) => void;
@@ -27,11 +28,7 @@ export default function MemoCard({ result, mode, memo, setMemo }: {
         </button>
       </div>
 
-      {busy && (
-        <div className="mt-4 grid gap-2" aria-busy="true">
-          <div className="skeleton h-4 w-[92%]" /><div className="skeleton h-4 w-[84%]" /><div className="skeleton h-4 w-[70%]" />
-        </div>
-      )}
+      {busy && <MemoLoading />}
       {!busy && err && <div className="mt-4"><ErrorState kind={err.kind} message={err.message} onRetry={go} /></div>}
 
       {!busy && memo && (
@@ -83,4 +80,24 @@ function MemoText({ text }: { text: string }) {
     return <ul className="grid list-disc gap-1.5 pl-5">{lines.map((l, i) => <li key={i}>{l.replace(/^[-*•]\s+/, "")}</li>)}</ul>;
   }
   return <div className="grid gap-2">{lines.map((l, i) => <p key={i}>{l.replace(/^[-*•]\s+/, "• ")}</p>)}</div>;
+}
+
+function MemoLoading() {
+  const t = useElapsed();
+  return (
+    <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]" aria-busy="true" aria-live="polite">
+      <div className="grid content-start gap-2.5 rounded-[6px] border border-hair bg-ground p-4">
+        <p className="mb-1 flex items-baseline justify-between text-xs text-mute">
+          <span>The local model is writing; the verifier checks each sentence next.</span>
+          <span className="font-mono num">{t.toFixed(1)} s</span>
+        </p>
+        {[94, 86, 91, 72].map((w, i) => <div key={i} className="skeleton h-3.5" style={{ width: `${w}%`, ["--d" as string]: `${i * 0.12}s` }} />)}
+      </div>
+      <div className="grid content-start gap-2.5">
+        <div className="skeleton h-3 w-40" />
+        <div className="skeleton h-3.5 w-[80%]" style={{ ["--d" as string]: ".1s" }} />
+        <div className="skeleton h-9 w-full" style={{ ["--d" as string]: ".2s" }} />
+      </div>
+    </div>
+  );
 }

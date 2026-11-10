@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, ApiError, fmt, SAMPLES, type Compare as CompareT, type Session } from "../api";
-import { ErrorState, Skeleton, Tag } from "./ui";
+import { ErrorState, Tag } from "./ui";
 
 export default function Compare({ session, demo }: { session: Session | null; demo: boolean }) {
   const [query, setQuery] = useState(SAMPLES[1].text);
@@ -43,7 +43,24 @@ export default function Compare({ session, demo }: { session: Session | null; de
         </p>
       )}
       {err && <div className="mt-4"><ErrorState kind={err.kind} message={err.message} onRetry={run} /></div>}
-      {busy && <div className="mt-5 grid gap-4 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-72" />)}</div>}
+      {busy && (
+        <div className="mt-5 grid gap-4 lg:grid-cols-3" aria-busy="true">
+          {["NDL_SENIOR", "NDL_JUNIOR", "NDL_P10"].map((u, c) => (
+            <div key={u} className="panel overflow-hidden">
+              <div className="flex items-center justify-between border-b border-hair px-4 py-3">
+                <span className="rounded-[3px] bg-ink px-1.5 py-[1px] font-mono text-[12px] font-semibold text-paper">{u}</span>
+                <div className="skeleton h-3 w-20" style={{ ["--d" as string]: `${c * 0.15}s` }} />
+              </div>
+              <div className="grid grid-cols-3 gap-3 border-b border-hair px-4 py-3">
+                {[0, 1, 2].map((i) => <div key={i} className="skeleton h-8" style={{ ["--d" as string]: `${c * 0.15 + i * 0.05}s` }} />)}
+              </div>
+              <div className="grid gap-2.5 px-4 py-3">
+                {Array.from({ length: 8 }).map((_, r) => <div key={r} className="skeleton h-3" style={{ width: `${70 - (r % 3) * 9}%`, ["--d" as string]: `${c * 0.15 + r * 0.07}s` }} />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!busy && res && (
         <p className="fade-in mt-5 text-sm" data-testid="compare-diff">
           {onlySenior.length ? (

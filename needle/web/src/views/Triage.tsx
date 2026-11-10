@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api, ApiError, fmt, MODES, SAMPLES, type Memo, type Mode, type Session, type TriageResult } from "../api";
-import { ErrorState, Kbd, Segmented, Skeleton } from "../components/ui";
+import { ErrorState, Kbd, Segmented } from "../components/ui";
 import Verdict from "../components/Verdict";
 import Rankings from "../components/Rankings";
 import Exposure from "../components/Exposure";
@@ -159,13 +159,60 @@ function RouterLine({ result }: { result: TriageResult }) {
   );
 }
 
+export function useElapsed(on = true) {
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    if (!on) return;
+    const t0 = performance.now();
+    const id = window.setInterval(() => setT((performance.now() - t0) / 1000), 100);
+    return () => window.clearInterval(id);
+  }, [on]);
+  return t;
+}
+
 function Loading({ user }: { user: string }) {
+  const t = useElapsed();
   return (
     <div className="grid gap-6" aria-busy="true" aria-live="polite">
-      <p className="text-sm text-mute">Running <span className="font-mono text-ink-2">NEEDLE.TRIAGE_MODE</span> as <span className="font-mono text-ink-2">{user}</span>…</p>
-      <Skeleton className="h-[148px] rounded-[6px]" />
+      <div className="grid gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 text-sm">
+          <p className="text-ink-2">Running <span className="font-mono font-semibold text-ink">NEEDLE.TRIAGE_MODE</span> as{" "}
+            <span className="font-mono font-semibold text-ink">{user}</span></p>
+          <span className="font-mono text-xs text-mute num">{t.toFixed(1)} s</span>
+        </div>
+        <div className="progress-line" />
+        <ol className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute">
+          <li><span className="font-mono text-ink-2">nomic-embed-text</span> turns the question into 768 numbers</li>
+          <li>Db2 ranks by keyword and by meaning under row access control</li>
+          <li>the SBOM join finds the services</li>
+        </ol>
+      </div>
+      <div className="grid gap-5 overflow-hidden rounded-[6px] bg-slab p-6 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="grid content-start gap-3">
+          <div className="skeleton-dark h-9 w-[46%]" />
+          <div className="skeleton-dark h-3.5 w-[72%]" style={{ ["--d" as string]: ".12s" }} />
+          <div className="skeleton-dark h-3.5 w-[58%]" style={{ ["--d" as string]: ".2s" }} />
+        </div>
+        <div className="grid grid-cols-4 gap-6">
+          {[0, 1, 2, 3].map((i) => <div key={i} className="skeleton-dark h-14 w-24" style={{ ["--d" as string]: `${0.1 + i * 0.08}s` }} />)}
+        </div>
+      </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-[420px] rounded-[6px]" />)}
+        {[0, 1, 2].map((c) => (
+          <div key={c} className={`panel overflow-hidden ${c === 1 ? "hidden lg:block" : c === 0 ? "hidden lg:block" : ""}`}>
+            <div className="border-b border-hair px-4 py-3"><div className="skeleton h-3.5 w-24" style={{ ["--d" as string]: `${c * 0.1}s` }} /></div>
+            {Array.from({ length: 10 }).map((_, r) => (
+              <div key={r} className="grid grid-cols-[1.75rem_minmax(0,1fr)_3.5rem] items-center gap-2 border-b border-hair px-4 py-2.5 last:border-b-0">
+                <div className="skeleton h-3 w-3" style={{ ["--d" as string]: `${c * 0.1 + r * 0.06}s` }} />
+                <div className="grid gap-1.5">
+                  <div className="skeleton h-3 w-[62%]" style={{ ["--d" as string]: `${c * 0.1 + r * 0.06}s` }} />
+                  <div className="skeleton h-2.5 w-[88%] opacity-70" style={{ ["--d" as string]: `${c * 0.1 + r * 0.06 + 0.04}s` }} />
+                </div>
+                <div className="skeleton h-3 w-full" style={{ ["--d" as string]: `${c * 0.1 + r * 0.06}s` }} />
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );

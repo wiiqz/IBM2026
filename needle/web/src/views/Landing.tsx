@@ -96,7 +96,10 @@ function Hero() {
 
   return (
     <section aria-label="NEEDLE" className="relative overflow-hidden bg-[#0b0d0e] text-paper" data-testid="hero">
-      <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse 58% 62% at 66% 46%, #1a2225 0%, #101416 52%, #0b0d0e 100%)" }} />
+      <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse 58% 62% at 66% 46%, #172124 0%, #0f1416 52%, #0a0c0d 100%)" }} />
+      <div aria-hidden className="hero-glow" />
+      <div aria-hidden className="hero-vignette" />
+      <div aria-hidden className="hero-grain" />
       <div className="relative grid min-h-[calc(100svh-56px)] lg:block lg:h-[calc(100svh-56px)] lg:max-h-[1000px] lg:min-h-[640px]">
         <div ref={host} className={`relative h-[58svh] min-h-[340px] transition-opacity duration-700 ease-out lg:absolute lg:inset-0 lg:h-auto ${ready ? "opacity-100" : "opacity-0"}`}
           role="img" aria-label="Point cloud of the public advisories. Drag to turn it." />

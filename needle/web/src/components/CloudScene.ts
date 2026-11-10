@@ -61,6 +61,39 @@ void main() {
   gl_FragColor = vec4(mix(vColor, ring, smoothstep(0.30, 0.36, d)), 1.0 - smoothstep(0.46, 0.5, d));
 }`;
 
+const HALO_FRAG = /* glsl */ `
+varying vec3 vColor;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  float g = pow(1.0 - d * 2.0, 2.2);
+  gl_FragColor = vec4(vColor * g, g * 0.55);
+}`;
+const PULSE_VERT = /* glsl */ `
+uniform float uTime, uPixelRatio;
+varying float vT;
+void main() {
+  vT = fract(uTime / 2.6);
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_PointSize = (14.0 + vT * 120.0) * uPixelRatio * (3.2 / -mv.z);
+  gl_Position = projectionMatrix * mv;
+}`;
+const PULSE_FRAG = /* glsl */ `
+varying float vT;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  float ring = smoothstep(0.5, 0.44, d) * smoothstep(0.36, 0.44, d);
+  float core = smoothstep(0.5, 0.0, d) * 0.35 * (1.0 - vT);
+  float a = (ring * 0.55 + core) * pow(1.0 - vT, 1.6);
+  gl_FragColor = vec4(vec3(0.72, 0.95, 0.97) * a, a);
+}`;
+const DUST_FRAG = /* glsl */ `
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  gl_FragColor = vec4(vec3(0.55, 0.68, 0.72), 0.16 * smoothstep(0.5, 0.0, d));
+}`;
+
 export async function loadCloud(): Promise<{ info: CloudInfo; pos: Float32Array; bucket: Float32Array }> {
   const [info, buf] = await Promise.all([
     fetch("/cloud/cloud.json").then((r) => r.json() as Promise<CloudInfo>),
@@ -85,6 +118,10 @@ export class CloudScene {
   private needle: THREE.Line;
   private tip: THREE.Points;
   private hl: THREE.Points;
+  private halo: THREE.Points;
+  private pulse: THREE.Points;
+  private dust: THREE.Points;
+  private t0 = performance.now();
   private raf = 0;
   private running = true;
   private fadeT = 1;
@@ -124,6 +161,35 @@ export class CloudScene {
       uniforms: { uPixelRatio: { value: this.renderer.getPixelRatio() } },
     }));
     this.hl.renderOrder = 3;
+    this.halo = new THREE.Points(new THREE.BufferGeometry(), new THREE.ShaderMaterial({
+      vertexShader: HL_VERT, fragmentShader: HALO_FRAG, transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.AdditiveBlending, uniforms: { uPixelRatio: { value: this.renderer.getPixelRatio() } },
+    }));
+    this.halo.renderOrder = 2;
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
+    this.pulse = new THREE.Points(pg, new THREE.ShaderMaterial({
+      vertexShader: PULSE_VERT, fragmentShader: PULSE_FRAG, transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.AdditiveBlending, uniforms: { uTime: { value: 0 }, uPixelRatio: { value: this.renderer.getPixelRatio() } },
+    }));
+    this.pulse.renderOrder = 4;
+    this.pulse.visible = !still;
+    // depth: a sparse dust field around the cloud (atmosphere, not data), turning slower than the cloud
+    const dn = 1400, dp = new Float32Array(dn * 3);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < dn; i++) {
+      const r = 3.2 + rnd() * 5.5, th = rnd() * Math.PI * 2, ph = Math.acos(2 * rnd() - 1);
+      dp.set([r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph) * 0.6, r * Math.sin(ph) * Math.sin(th)], i * 3);
+    }
+    const dg = new THREE.BufferGeometry();
+    dg.setAttribute("position", new THREE.BufferAttribute(dp, 3));
+    this.dust = new THREE.Points(dg, new THREE.ShaderMaterial({
+      vertexShader: `uniform float uPixelRatio; void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = 2.2 * uPixelRatio * (6.0 / -mv.z); gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: DUST_FRAG, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { uPixelRatio: { value: this.renderer.getPixelRatio() } },
+    }));
+    this.scene.add(this.dust);
     this.lines = new THREE.LineSegments(new THREE.BufferGeometry(),
       new THREE.LineBasicMaterial({ color: 0x5fdbe3, transparent: true, opacity: 0.35, depthWrite: false }));
     this.group.add(this.lines);
@@ -134,7 +200,9 @@ export class CloudScene {
     tg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
     this.tip = new THREE.Points(tg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.09, transparent: true, opacity: 0.95, depthWrite: false }));
     this.group.add(this.tip);
+    this.group.add(this.halo);
     this.group.add(this.hl);
+    this.group.add(this.pulse);
     this.scene.add(this.group);
 
     this.ro = new ResizeObserver(() => this.resize());
@@ -213,6 +281,11 @@ export class CloudScene {
     this.hl.geometry.setAttribute("aColor", new THREE.BufferAttribute(hc, 3));
     this.hl.geometry.setAttribute("aSize", new THREE.BufferAttribute(hs, 1));
     this.hl.geometry.computeBoundingSphere();
+    const hz = new Float32Array(marks.length).map((_, k) => (marks[k][1] === 1 ? 70 : 46));
+    this.halo.geometry.setAttribute("position", new THREE.BufferAttribute(hp.slice(), 3));
+    this.halo.geometry.setAttribute("aColor", new THREE.BufferAttribute(hc.slice(), 3));
+    this.halo.geometry.setAttribute("aSize", new THREE.BufferAttribute(hz, 1));
+    this.halo.geometry.computeBoundingSphere();
 
     const max = lens === "all" ? 100 : info.p10_max_bucket;
     const u = this.mat.uniforms;
@@ -236,11 +309,18 @@ export class CloudScene {
     const far = p.clone().addScaledVector(dir, 2.6);
     this.needle.geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([far.x, far.y, far.z, p.x, p.y, p.z]), 3));
     (this.tip.geometry.getAttribute("position") as THREE.BufferAttribute).set([p.x, p.y, p.z]);
+    if (this.pulse) {
+      (this.pulse.geometry.getAttribute("position") as THREE.BufferAttribute).set([p.x, p.y, p.z]);
+      this.pulse.geometry.getAttribute("position").needsUpdate = true;
+    }
     this.tip.geometry.getAttribute("position").needsUpdate = true;
   }
 
   private render() {
     this.group.rotation.set(this.rotX, this.rotY, 0);
+    this.dust.rotation.set(this.rotX * 0.5, this.rotY * 0.35, 0);
+    this.dust.position.x = this.group.position.x * 0.6;
+    (this.pulse.material as THREE.ShaderMaterial).uniforms.uTime.value = (performance.now() - this.t0) / 1000;
     this.renderer.render(this.scene, this.camera);
     if (this.onFrame) {
       const v = this.needlePos.clone().applyMatrix4(this.group.matrixWorld).project(this.camera);
