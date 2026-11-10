@@ -124,7 +124,7 @@ Our final run of all tests (`python -m pytest -q tests`): 206 passed. Of these, 
 ## 5. Demonstration & Links
 
 - **Live Demo URL (if hosted):** None. The app runs locally against your own Db2 (web UI and API bound to 127.0.0.1).
-- **Demo Video (YouTube / Loom / Drive):** [VIDEO_URL]
+- **Demo Video (YouTube / Loom / Drive):** https://youtu.be/5ZcVFBsjYLE (2:46)
 - **External Source Repo (if hosted separately):** [REPO_URL]
 - **Presentation / Slides URL (optional):** None.
 
@@ -136,8 +136,8 @@ Please verify and check every item before requesting review:
 
 - [x] **Folder Structure:** My submission is placed in a single new directory under `submissions/<project-slug>/` copied from `submissions/_template/`.
 - [x] **Naming Conventions:** The `<project-slug>` uses lowercase letters, numbers, and hyphens only, matching the branch name and PR title.
-- [ ] **Complete Documentation:** Both `submissions/<project-slug>/README.md` and `submissions/<project-slug>/architecture.md` are completely filled out without unfilled placeholder markers. <!-- tick after video_url is filled -->
-- [ ] **Metadata File:** `submissions/<project-slug>/submission.json` is completed and valid JSON. <!-- tick after video_url is filled -->
+- [x] **Complete Documentation:** Both `submissions/<project-slug>/README.md` and `submissions/<project-slug>/architecture.md` are completely filled out without unfilled placeholder markers.
+- [x] **Metadata File:** `submissions/<project-slug>/submission.json` is completed and valid JSON.
 - [x] **No Secrets or Credentials:** No API keys, passwords, private tokens, or connection strings with real credentials are committed. `.env.example` contains placeholders only.
 - [x] **Tested Setup Instructions:** Setup and run instructions were tested from a fresh environment and can be reproduced by reviewers.
 - [x] **License Declared:** Open-source license or distribution terms are specified.

@@ -1,6 +1,6 @@
 # Unstop Round 2 ("Build & Final Submission") text
 
-Team Needlepoint: Kartikeya Lathi and William Lu (GitHub wiiqz). Replace [PR_URL] and [VIDEO_URL] before submitting. Nothing has been submitted.
+Team Needlepoint: Kartikeya Lathi and William Lu (GitHub wiiqz). Replace https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55 and https://youtu.be/5ZcVFBsjYLE before submitting. Nothing has been submitted.
 Field names follow submission_copy/FORMS.md, section "Unstop Round 2".
 
 ## Project title
@@ -13,8 +13,8 @@ NEEDLE is a vulnerability-triage tool that runs entirely inside IBM Db2. Paste a
 
 ## Links
 
-- GitHub PR URL: [PR_URL]
-- Demo video link: [VIDEO_URL]
+- GitHub PR URL: https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
+- Demo video link: https://youtu.be/5ZcVFBsjYLE
 - Code: https://github.com/wiiqz/IBM2026
 
 ## Screenshots (upload in this order; files in needle/docs/screenshots/)

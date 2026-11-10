@@ -1,6 +1,6 @@
 # LinkedIn post (paste-ready)
 
-Author: Kartikeya Lathi (first person). Replace [VIDEO_URL] and [PR_URL] before posting. Nothing has been posted.
+Author: Kartikeya Lathi (first person). Replace https://youtu.be/5ZcVFBsjYLE and https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55 before posting. Nothing has been posted.
 Post text below is 1273 characters with the placeholders as written and 1355 with a youtu.be link and a full submission-repo PR link (Python len()). Keep it under 1,400.
 
 ## Post (copy everything between the lines)
@@ -15,8 +15,8 @@ William Lu and I built NEEDLE for IBM Db2Hack 2026. You paste a vague security m
 
 On 89 held-out queries, every user got 10 of 10 rows, recall@10 was 0.987 to 1.000, and there were 0 permission leaks. William Lu built the web UI.
 
-Demo: [VIDEO_URL]
-PR: [PR_URL]
+Demo: https://youtu.be/5ZcVFBsjYLE
+PR: https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 Code: https://github.com/wiiqz/IBM2026
 
 Thanks to the organising team: Gaurav Saxena, Daya Nand, Dhruv Chaturvedi, Keshav Maheshwari, Kunal Gola, Pawan Thakur, Shaik Sadiq, IBM Db2, GL Bajaj Group of Institutions (Mathura), IIC, NexaSphere.
@@ -55,7 +55,7 @@ Source: hashtags the organisers use in their YouTube descriptions (organizers.md
 ## Short variant (2 lines, for a repost or comment)
 
 Ask Db2 for 10 vector results under a 10% row permission and you get 2.05 on average (recall 0.205). William Lu and I built NEEDLE for IBM Db2Hack 2026: 10 of 10 rows, recall 0.987-1.000 on 89 held-out queries, 0 leaks.
-Demo: [VIDEO_URL]  Code: https://github.com/wiiqz/IBM2026  #IBMDb2 #Db2Hack
+Demo: https://youtu.be/5ZcVFBsjYLE  Code: https://github.com/wiiqz/IBM2026  #IBMDb2 #Db2Hack
 
 ## Evidence for each number
 
@@ -68,4 +68,4 @@ Demo: [VIDEO_URL]  Code: https://github.com/wiiqz/IBM2026  #IBMDb2 #Db2Hack
 ## Open points
 
 - Team size: research/organizers.md section 0 says the event is "Solo only" (event site, Luma, Unstop) while this entry names two people. Confirm before posting that the post's "William and I" wording matches what the Unstop and Google Form entries declare.
-- [VIDEO_URL] and [PR_URL] are not final until the video and PR exist.
+- https://youtu.be/5ZcVFBsjYLE and https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55 are not final until the video and PR exist.

@@ -2,7 +2,7 @@
 
 Both Google Forms need a Google sign-in, so their exact fields are UNKNOWN. The answers below cover the fields
 these forms usually ask for; copy the matching block into each field. Placeholders: [EMAIL],
-[PR_URL], [VIDEO_URL], [REPO_URL], [LINKEDIN_POST_URL].
+https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55, https://youtu.be/5ZcVFBsjYLE, https://github.com/wiiqz/IBM2026, [LINKEDIN_POST_URL].
 
 - Form A: https://forms.gle/n8GQL4tg7Yzftwu39 (linked from the event site, Devpost Resources, Unstop and SKILL.md).
 - Form B: https://forms.gle/ZjsLaFU5zAYJonwk9 (labelled "Main Project Submission Form" on Luma; a different form).
@@ -32,11 +32,11 @@ NEEDLE is a vulnerability-triage tool that finds which of your services a vague 
 
 NEEDLE is a vulnerability-triage tool that fuses BM25 keyword search and DiskANN vector search in one IBM Db2 SQL statement under row-level permissions, then joins a temporal SBOM to show which services are affected and since when. We measured that row permissions cut approximate-search results to about 2 of 10 rows for a low-visibility user, and NEEDLE's per-user routing restores recall@10 to 0.987-1.000 on 89 held-out queries.
 
-**GitHub PR URL:** [PR_URL]
+**GitHub PR URL:** https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 
-**Demo video URL:** [VIDEO_URL]
+**Demo video URL:** https://youtu.be/5ZcVFBsjYLE
 
-**Source repository URL (if asked):** [REPO_URL]
+**Source repository URL (if asked):** https://github.com/wiiqz/IBM2026
 
 **Live demo URL (if asked):** None. NEEDLE runs locally against your own Db2 (instructions in the README).
 
@@ -81,9 +81,9 @@ NEEDLE's README has copy-paste SQL that shows what exists in Db2, and every numb
 
 **Project title:** NEEDLE — permission-aware hybrid retrieval in Db2
 
-**GitHub PR URL:** [PR_URL]
+**GitHub PR URL:** https://github.com/KunalGolaIBM/IBM_Db2_TechX_Project_Submission/pull/55
 
-**Demo video link:** [VIDEO_URL]
+**Demo video link:** https://youtu.be/5ZcVFBsjYLE
 
 **Project description (if a text field is shown):** use the one-paragraph description above.
 
