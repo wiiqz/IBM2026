@@ -344,11 +344,12 @@ Copy `.env.example` to `.env`. Never commit `.env`. `set -a; . ./.env` needs pas
 ```bash
 # Web UI (React) + local API (FastAPI). Both listen on 127.0.0.1 only.
 (cd web && npm ci && npm run build)      # once: builds web/dist
-python -m needle.api                     # serves the API and web/dist on http://127.0.0.1:8600
+PYTHONPATH=src python -m needle.api      # serves the API and web/dist on http://127.0.0.1:8600
 #   sign in with a Db2 user ID and password, e.g. NDL_JUNIOR and the password you set in .env
-#   recorded demos only: NEEDLE_DEMO_SWITCHER=1 python -m needle.api   (one-click NDL_SENIOR / NDL_JUNIOR /
+#   recorded demos only: NEEDLE_DEMO_SWITCHER=1 PYTHONPATH=src python -m needle.api   (one-click NDL_SENIOR / NDL_JUNIOR /
 #   NDL_P10, passwords read from .env; the page labels it "demo identity switcher - not authentication")
-# Front-end development with hot reload: python -m needle.api, then (cd web && npm run dev) -> http://127.0.0.1:5173
+# Front-end development with hot reload: the API as above, then (cd web && npm run dev) -> http://127.0.0.1:5173
+# Windows PowerShell: $env:PYTHONPATH="src"; python -m needle.api
 
 # The original Streamlit page (same do_run; run from this folder so .streamlit/config.toml binds 127.0.0.1)
 python -m streamlit run src/needle/app.py

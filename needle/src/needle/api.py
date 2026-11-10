@@ -1,7 +1,7 @@
 """NEEDLE local HTTP API (FastAPI) for the React front end in needle/web/.
 
-Run from the needle/ folder:   python -m needle.api            (serves the API and the built web/dist on
-                                                                http://127.0.0.1:8600)
+Run from the needle/ folder:   PYTHONPATH=src python -m needle.api   (serves the API and the built web/dist
+                                                                      on http://127.0.0.1:8600)
 
 Security model (same as the Streamlit app):
 - Loopback only. ``main()`` refuses any host other than 127.0.0.1 / localhost, and a Host-header check blocks

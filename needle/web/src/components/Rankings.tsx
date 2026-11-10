@@ -17,7 +17,9 @@ export default function Rankings({ result, mode }: { result: TriageResult; mode:
         {MODES.map((m) => (
           <div key={m} className={`panel min-w-0 overflow-hidden ${m === mode ? "border-t-[3px] border-t-accent" : "border-t-[3px] border-t-hair"}`} data-testid={`rank-${m}`}>
             <div className="flex items-baseline justify-between gap-3 border-b border-hair px-4 py-2.5">
-              <h3 className="text-sm font-semibold">{HEAD[m].title}</h3>
+              <h3 className="flex items-baseline gap-2 text-sm font-semibold">{HEAD[m].title}
+                <span className={`font-mono text-[11px] font-medium num ${result.rankings[m].length < result.k ? "text-affected" : "text-mute"}`}>top {result.k}: {result.rankings[m].length} rows</span>
+              </h3>
               <span className="truncate text-xs text-mute">{HEAD[m].how}</span>
             </div>
             {result.rankings[m].length === 0 ? (

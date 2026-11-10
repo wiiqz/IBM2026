@@ -131,7 +131,7 @@ function RouterLine({ result }: { result: TriageResult }) {
         <span className={`rounded-[3px] px-1.5 py-[1px] font-mono text-[11px] font-semibold ${exact ? "bg-ink text-paper" : "bg-accent-wash text-accent-strong"}`}>
           {exact ? "EXACT" : "APPROX"}
         </span>
-        <span className="font-medium text-ink">{result.router.line}</span>
+        <span className="font-medium text-ink" data-testid="router-text">{result.router.line}</span>
       </p>
       <p className="ml-auto flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-mute num">
         <span>embed {fmt.ms(t.embed)}</span>

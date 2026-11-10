@@ -199,9 +199,19 @@ def render_slides(names: set[str], repo_url: str) -> dict:
 
 
 # ------------------------------------------------------------------------------------------------ app server
+UI = "web"  # "web" = React UI over needle.api (default); "streamlit" = the original page. Set by --ui.
+
+
+def _venv_python() -> Path:
+    for rel in (".venv/Scripts/python.exe", ".venv/bin/python"):
+        if (NEEDLE / rel).exists():
+            return NEEDLE / rel
+    return Path(sys.executable)
+
+
 def app_up(url: str) -> bool:
     try:
-        with urllib.request.urlopen(url + "/_stcore/health", timeout=2) as r:
+        with urllib.request.urlopen(url + ("/api/health" if UI == "web" else "/_stcore/health"), timeout=2) as r:
             return r.status == 200
     except Exception:
         return False
@@ -212,19 +222,27 @@ def start_app(url: str, port: int) -> subprocess.Popen | None:
         log(f"app already running at {url} (reused; it must have been started with NEEDLE_DEMO_SWITCHER=1)")
         return None
     env = dict(os.environ, NEEDLE_DEMO_SWITCHER="1", PYTHONIOENCODING="utf-8")
-    logf = (BUILD / "streamlit_run.log").open("w", encoding="utf-8")
-    py = NEEDLE / ".venv/Scripts/python.exe"
-    proc = subprocess.Popen([str(py), "-m", "streamlit", "run", "src/needle/app.py", "--server.headless", "true", "--server.fileWatcherType", "none",
-                             "--server.port", str(port)], cwd=NEEDLE, env=env, stdout=logf, stderr=subprocess.STDOUT)
+    py = _venv_python()
+    if UI == "web":
+        if not (NEEDLE / "web" / "dist" / "index.html").exists():
+            raise RuntimeError("web UI not built: cd needle/web && npm ci && npm run build")
+        env["PYTHONPATH"] = str(NEEDLE / "src")
+        logf = (BUILD / "web_api_run.log").open("w", encoding="utf-8")
+        cmd = [str(py), "-m", "needle.api", "--port", str(port)]
+    else:
+        logf = (BUILD / "streamlit_run.log").open("w", encoding="utf-8")
+        cmd = [str(py), "-m", "streamlit", "run", "src/needle/app.py", "--server.headless", "true",
+               "--server.fileWatcherType", "none", "--server.port", str(port)]
+    proc = subprocess.Popen(cmd, cwd=NEEDLE, env=env, stdout=logf, stderr=subprocess.STDOUT)
     for _ in range(120):
         if app_up(url):
             log(f"app started at {url} (pid {proc.pid}, NEEDLE_DEMO_SWITCHER=1)")
             return proc
         if proc.poll() is not None:
-            raise RuntimeError("streamlit exited early; see build/streamlit_run.log")
+            raise RuntimeError(f"{UI} app exited early; see build/{'web_api_run' if UI == 'web' else 'streamlit_run'}.log")
         time.sleep(0.5)
     proc.terminate()
-    raise RuntimeError("streamlit did not become healthy in 60 s")
+    raise RuntimeError(f"{UI} app did not become healthy in 60 s")
 
 
 def stop_app(proc) -> None:
@@ -411,6 +429,101 @@ class AppDriver:
         self.page.wait_for_timeout(500)
 
 
+class WebAppDriver(AppDriver):
+    """The same actions on the React UI (needle/web over needle.api, demo identity switcher on)."""
+
+    SECTIONS = {"Ranked advisories": "Ranked advisories", "Affected services": "Affected services",
+                "Triage memo": "Triage memo"}
+
+    def settle(self, ms: int = 400):
+        self.page.wait_for_timeout(ms)
+        self.page.wait_for_function("() => !document.querySelector('[aria-busy=\"true\"]')", timeout=180000)
+
+    def _box(self):
+        return self.page.locator("#q")
+
+    def _ensure_signed_in(self, user: str = "NDL_SENIOR"):
+        if self._box().count() == 0:  # sign-in screen: one click on a demo identity
+            self.click(self.page.get_by_role("button", name=re.compile("^" + re.escape(user))).first)
+            self._box().wait_for(timeout=60000)
+            self.user = user
+
+    def paste_query(self, text: str):
+        self._ensure_signed_in()
+        ta = self._box()
+        self.click(ta)
+        self.page.wait_for_timeout(300)
+        ta.fill(text)  # looks like a paste; no Ctrl+Enter here (it would run the triage)
+        self.page.wait_for_timeout(300)
+
+    def type_query(self, text: str):
+        self._ensure_signed_in()
+        self.click(self._box())
+        self._box().fill("")
+        self.page.keyboard.type(text, delay=24)
+
+    def ensure_query(self, text: str):
+        self._ensure_signed_in()
+        if self._box().input_value().strip() != text.strip():
+            self.paste_query(text)
+
+    def select_user(self, user: str):
+        p = self.page
+        if self._box().count() == 0:
+            self._ensure_signed_in(user)
+        sel = p.locator("[data-testid='demo-identity']")
+        if sel.input_value() != user:
+            self.click(sel)
+            sel.select_option(user)
+            p.wait_for_function("(u) => document.querySelector('[data-testid=demo-identity]').value === u",
+                                arg=user, timeout=60000)
+            p.wait_for_timeout(600)
+        self.user = user
+
+    def run(self):
+        p = self.page
+        self.click(p.get_by_test_id("run-triage"))
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < 180:
+            if p.get_by_test_id("router-line").count():
+                break
+            err = p.locator("[role='alert']")
+            if err.count():
+                raise RuntimeError("app error: " + err.first.inner_text()[:300])
+            p.wait_for_timeout(250)
+        else:
+            raise RuntimeError("Run triage did not finish in 180 s")
+        self.settle(500)
+
+    def scroll_to(self, title: str):
+        loc = self.page.locator(f"section[aria-label='{self.SECTIONS.get(title, title)}']").first
+        loc.evaluate("el => { el.style.scrollMarginTop = '72px'; el.scrollIntoView({behavior: 'smooth', block: 'start'}); }")
+        self.page.wait_for_timeout(1300)
+
+    def _sql(self):
+        return self.page.locator("section[aria-label='SQL and access plan']").first
+
+    def open_expander(self, title: str):
+        b = self._sql().locator("button[aria-expanded]").first
+        if b.get_attribute("aria-expanded") != "true":
+            self.click(b)
+        self.page.wait_for_timeout(500)
+
+    def close_expander(self, title: str):
+        b = self._sql().locator("button[aria-expanded]").first
+        if b.get_attribute("aria-expanded") == "true":
+            self.click(b)
+        self.page.wait_for_timeout(300)
+
+    def scroll_to_expander(self, title: str):
+        self._sql().evaluate("el => { el.style.scrollMarginTop = '72px'; el.scrollIntoView({behavior: 'smooth', block: 'start'}); }")
+        self.page.wait_for_timeout(1300)
+
+    def caption_from_depth_line(self):
+        loc = self.page.get_by_test_id("router-text").first
+        self.caption(loc.inner_text().strip() if loc.count() else None)
+
+
 def capture_app_scene(sc: dict, clips, url: str) -> dict:
     from playwright.sync_api import sync_playwright
     cdir = BUILD / "capture"
@@ -427,10 +540,14 @@ def capture_app_scene(sc: dict, clips, url: str) -> dict:
         t_ref = time.monotonic()
         now = lambda: time.monotonic() - t_ref  # noqa: E731
         try:
-            page.goto(url, wait_until="domcontentloaded")
-            page.locator("[data-testid='stSidebar']").wait_for(timeout=60000)
-            page.get_by_role("button", name="Run triage").wait_for(timeout=60000)
-            d = AppDriver(page)
+            page.goto(url + ("/#/triage" if UI == "web" else ""), wait_until="domcontentloaded")
+            if UI == "web":
+                page.locator("[data-testid='demo-identity']").wait_for(timeout=60000)
+                d = WebAppDriver(page)
+            else:
+                page.locator("[data-testid='stSidebar']").wait_for(timeout=60000)
+                page.get_by_role("button", name="Run triage").wait_for(timeout=60000)
+                d = AppDriver(page)
             d.overlay()
             page.evaluate("() => document.fonts.ready")
             page.wait_for_timeout(1200)
@@ -530,11 +647,15 @@ def main() -> int:
     ap.add_argument("--rate", default="+10%")
     ap.add_argument("--repo-url", default="github.com/<repo>  ·  PR <link>  (placeholder)")
     ap.add_argument("--port", type=int, default=8599)
+    ap.add_argument("--ui", choices=["web", "streamlit"], default="web",
+                    help="web = React UI over needle.api (default); streamlit = the original page")
     ap.add_argument("--script-only", action="store_true")
     ap.add_argument("--reuse-capture", action="store_true", help="reuse build/capture/<id>.webm if present")
     ap.add_argument("--allow-missing-evidence", action="store_true")
     ap.add_argument("--frames", type=int, default=3)
     a = ap.parse_args()
+    global UI
+    UI = a.ui
     url = f"http://127.0.0.1:{a.port}"
     BUILD.mkdir(exist_ok=True)
     (BUILD / "ffmpeg.log").write_text("", encoding="utf-8")

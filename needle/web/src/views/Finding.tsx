@@ -161,10 +161,14 @@ function PlanCache({ f, k }: { f: Finding; k: number }) {
             </tr>
           </thead>
           <tbody>
-            {pc.steps.map((st) => (
+            {pc.steps.map((st, i) => (
               <tr key={st.user} className="border-b border-hair last:border-b-0">
                 <td className="px-4 py-2 font-mono text-[13px] font-semibold">{st.user}</td>
-                <td className="px-4 py-2 font-mono text-[13px] text-ink-2">{st.executable_id.slice(-16)}</td>
+                <td className="px-4 py-2 font-mono text-[13px] text-ink-2">
+                  {i > 0 && st.executable_id === pc.steps[0].executable_id
+                    ? <span className="font-sans text-mute">same as above</span>
+                    : st.executable_id.slice(-16)}
+                </td>
                 <td className="px-4 py-2 text-right font-mono text-[13px] num">{fmt.int(st.executions)}</td>
                 <td className="px-4 py-2 text-right font-mono text-[13px] num">{fmt.int(st.rows_read)}</td>
                 <td className={`px-4 py-2 text-right font-mono text-[13px] font-semibold num ${st.rows_returned < st.queries * k ? "text-affected" : ""}`}>{fmt.int(st.rows_returned)} <span className="font-normal text-mute">of {st.queries * k}</span></td>
