@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+**/.venv/
+__pycache__/
+*.pyc
+needle/data/
+*.secret.env
+.pytest_cache/
+video/.venv/
+video/out/
+video/build/
+*.mp4
+*.mp3
+*.wav
+node_modules/

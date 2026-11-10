@@ -1,0 +1,111 @@
+-- NEEDLE -- reference retrieval SQL for IBM Db2 12.1.5.
+-- THIS FILE IS NOT CLAIMED EXECUTED. PROVE EACH STATEMENT LIVE BEFORE SHIPPING.
+-- Never interpolate untrusted query text as SQL. Use parameter markers (?); for FETCH count
+-- use a strict integer allowlist if driver cannot bind it. Schema columns in DB2_SCHEMA.sql.
+-- Parameter qvec is compact 768-number JSON array produced by nomic-embed-text.
+-- Parameter qid is UUID of terms already inserted into NDL_QUERY_TERMS for that request.
+-- The two query modes below are intended to have identical ORDER BY semantics.
+
+-- A. EXACT semantic top-10: bind `?` as CLOB(32K), if driver supports this form.
+SELECT A.ADV_ID,
+       VECTOR_DISTANCE(A.EMBEDDING,
+                       VECTOR(CAST(? AS CLOB(32K)), 768, FLOAT32),
+                       COSINE) AS DIST
+FROM NDL_ADVISORIES A
+WHERE A.VISIBILITY = 'PUBLIC'
+  AND A.EMBEDDING IS NOT NULL
+ORDER BY DIST ASC
+FETCH EXACT FIRST 10 ROWS ONLY;
+
+-- B. APPROX semantic top-10. The query being accepted does NOT mean the index was used!
+SELECT A.ADV_ID,
+       VECTOR_DISTANCE(A.EMBEDDING,
+                       VECTOR(CAST(? AS CLOB(32K)), 768, FLOAT32),
+                       COSINE) AS DIST
+FROM NDL_ADVISORIES A
+WHERE A.VISIBILITY = 'PUBLIC'
+  AND A.EMBEDDING IS NOT NULL
+ORDER BY DIST ASC
+FETCH APPROX FIRST 10 ROWS ONLY;
+
+-- C. KEYWORD rank using real indexed term lookup. Bind query_id.
+SELECT T.ADV_ID,
+       SUM(T.TERM_WEIGHT) AS KEYWORD_SCORE
+FROM NDL_ADVISORY_TERMS T
+JOIN NDL_QUERY_TERMS QT ON QT.TERM_TOKEN = T.TERM_TOKEN
+JOIN NDL_ADVISORIES A ON A.ADV_ID = T.ADV_ID
+WHERE QT.QUERY_ID = ?
+  AND A.VISIBILITY = 'PUBLIC'
+GROUP BY T.ADV_ID
+ORDER BY KEYWORD_SCORE DESC, T.ADV_ID
+FETCH FIRST 30 ROWS ONLY;
+
+-- D. One-statement RRF: bind ? for query vector first, ? for query_id second.
+-- It uses EXACT vector retrieval by default to maximize portability and testability.
+-- Replacing EXACT with APPROX is an OPTIONAL optimizer experiment: the CTE shape may
+-- prevent ANN index selection. Verify actual EXPLAIN and document fallback.
+WITH VECTOR_CANDIDATES AS (
+    SELECT A.ADV_ID,
+           VECTOR_DISTANCE(A.EMBEDDING,
+                           VECTOR(CAST(? AS CLOB(32K)), 768, FLOAT32),
+                           COSINE) AS DIST
+    FROM NDL_ADVISORIES A
+    WHERE A.VISIBILITY = 'PUBLIC'
+      AND A.EMBEDDING IS NOT NULL
+    ORDER BY DIST ASC
+    FETCH EXACT FIRST 30 ROWS ONLY
+), VECTOR_RANK AS (
+    SELECT V.ADV_ID,
+           ROW_NUMBER() OVER(ORDER BY V.DIST ASC, V.ADV_ID ASC) AS VR
+    FROM VECTOR_CANDIDATES V
+), TERM_CANDIDATES AS (
+    SELECT T.ADV_ID, SUM(T.TERM_WEIGHT) AS TERM_SCORE
+    FROM NDL_ADVISORY_TERMS T
+    JOIN NDL_QUERY_TERMS QT ON QT.TERM_TOKEN = T.TERM_TOKEN
+    JOIN NDL_ADVISORIES A ON A.ADV_ID = T.ADV_ID
+    WHERE QT.QUERY_ID = ?
+      AND A.VISIBILITY = 'PUBLIC'
+    GROUP BY T.ADV_ID
+), TERM_RANK AS (
+    SELECT L.ADV_ID,
+           ROW_NUMBER() OVER(ORDER BY L.TERM_SCORE DESC, L.ADV_ID ASC) AS LR
+    FROM TERM_CANDIDATES L
+), RRF_COMPONENTS AS (
+    SELECT ADV_ID, DECIMAL(1.0 / (60 + VR), 15, 10) AS CONTRIBUTION
+    FROM VECTOR_RANK
+    UNION ALL
+    SELECT ADV_ID, DECIMAL(1.0 / (60 + LR), 15, 10) AS CONTRIBUTION
+    FROM TERM_RANK
+), RRF AS (
+    SELECT ADV_ID, SUM(CONTRIBUTION) AS FUSION_SCORE
+    FROM RRF_COMPONENTS GROUP BY ADV_ID
+)
+SELECT A.ADV_ID, A.TITLE, A.SOURCE_KIND, A.SOURCE_URL, R.FUSION_SCORE
+FROM RRF R
+JOIN NDL_ADVISORIES A ON A.ADV_ID = R.ADV_ID
+ORDER BY R.FUSION_SCORE DESC, R.ADV_ID ASC
+FETCH FIRST 10 ROWS ONLY;
+
+-- E. Exact release applicability, bind ? SBOM_ID. Filters PUBLIC advisories BEFORE join.
+-- Do not mark an embargo-only match AFFECTED or leak embargo details to public API.
+-- "NOT_CONFIRMED" is NOT "SAFE"; this only checks explicitly enumerated releases.
+WITH PUBLIC_AFFECTED AS (
+ SELECT R.PKG_ID, R.EXACT_VERSION, A.ADV_ID, A.TITLE, A.SOURCE_KIND
+ FROM NDL_AFFECTED_RELEASES R
+ JOIN NDL_ADVISORIES A ON A.ADV_ID = R.ADV_ID AND A.VISIBILITY = 'PUBLIC'
+)
+SELECT C.SBOM_ID, C.COMPONENT_ID, P.ECOSYSTEM, P.PKG_NAME, C.INSTALLED_VER,
+       R.ADV_ID, R.TITLE, R.SOURCE_KIND,
+       CASE WHEN R.ADV_ID IS NOT NULL THEN 'AFFECTED' ELSE 'NOT_CONFIRMED' END AS APPLICABILITY
+FROM NDL_SBOM_COMPONENTS C
+JOIN NDL_PACKAGES P ON P.PKG_ID = C.PKG_ID
+LEFT JOIN PUBLIC_AFFECTED R
+ ON R.PKG_ID = C.PKG_ID AND R.EXACT_VERSION = C.INSTALLED_VER
+WHERE C.SBOM_ID = ?
+ORDER BY P.ECOSYSTEM, P.PKG_NAME, C.INSTALLED_VER;
+
+-- F. DB2 CLI maintenance after seeding and index build:
+-- CREATE VECTOR INDEX NDL_VIX_COS ON NDL_ADVISORIES (EMBEDDING) WITH DISTANCE COSINE;
+-- RUNSTATS ON TABLE NDL_ADVISORIES AND INDEXES ALL;
+-- EXPLAIN PLAN FOR SELECT ... FETCH APPROX FIRST 10 ROWS ONLY;
+-- db2exfmt -d <dbname> -1 -o <filepath>  (verify available CLP flags)
