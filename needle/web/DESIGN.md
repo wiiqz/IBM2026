@@ -67,6 +67,14 @@ visible. The synthetic fleet is labelled.
   lit petrol. Under "10% analyst · shared plan" the 21-row first batch shows: rows the permission removes turn red,
   the survivors stay lit, and the readout says "2 of 10". "NEEDLE router" lights the 10 nearest the analyst may
   read. Every number on the stage comes from `cloud.json`.
+- **Light (revised after the owner rejected a CSS glow as "just a radius of light"):** the light comes from the scene.
+  A bloom pass (UnrealBloomPass, threshold 0.62, strength 0.75, half resolution) lets the dense clusters, the lit
+  neighbours, the removed rows and the needle emit light. Depth shading makes far points cooler and dimmer. The
+  backdrop is one low key light from the upper right, drawn into the WebGL clear.
+- **Animated background tied to the subject:** a faint k-nearest-neighbour graph over a sample of the points.
+  Four search pulses walk it greedily toward the question, taking a long edge when they stall, the way a DiskANN
+  index search moves. The caption says it is an illustration, not Db2's own graph. "Pause motion" stops the walks,
+  the idle turn and the needle pulse.
 - **Motion:** one fade-in of the canvas (700 ms) and a slow idle turn. Drag turns it, 1:1 while held, with inertia
   on release. Identity changes fade the points over about 0.7 s. Reduced motion: a still frame, no idle turn, no
   fades, and no Lenis.

@@ -99,21 +99,21 @@ function Hero() {
   return (
     <section aria-label="NEEDLE" className={`relative overflow-hidden bg-[#0b0d0e] text-paper ${paused ? "hero-paused" : ""}`} data-testid="hero">
       <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(ellipse 58% 62% at 66% 46%, #172124 0%, #0f1416 52%, #0a0c0d 100%)" }} />
-      <div aria-hidden className="hero-glow" />
-      <div aria-hidden className="hero-vignette" />
-      <div aria-hidden className="hero-grain" />
+
       <div className="relative grid min-h-[calc(100svh-56px)] lg:block lg:h-[calc(100svh-56px)] lg:max-h-[1000px] lg:min-h-[640px]">
         <div ref={host} className={`relative h-[58svh] min-h-[340px] transition-opacity duration-700 ease-out lg:absolute lg:inset-0 lg:h-auto ${ready ? "opacity-100" : "opacity-0"}`}
-          role="img" aria-label="Point cloud of the public advisories. Drag to turn it." />
+          role="img" aria-label="Point cloud of the public advisories with a nearest-neighbour graph. Drag to turn it." />
+        <div aria-hidden className="hero-vignette pointer-events-none lg:inset-0" />
+        <div aria-hidden className="hero-grain pointer-events-none" />
         <div ref={label} aria-hidden className="pointer-events-none absolute top-0 left-0 opacity-0 transition-opacity duration-300">
           <span className="ml-3 -translate-y-1/2 inline-block whitespace-nowrap rounded-[3px] bg-paper px-1.5 py-[1px] font-mono text-[11px] font-semibold text-ink">your question</span>
         </div>
         {nogl && <p className="absolute top-6 left-6 text-sm text-slab-mute">The 3D view needs WebGL; everything below works without it.</p>}
 
         <div className="pointer-events-none relative z-10 mx-auto flex max-w-[1600px] flex-col justify-end gap-8 px-4 pb-10 sm:px-6 lg:h-full lg:px-8 lg:pb-14">
-          <div className="pointer-events-auto hidden max-w-[34ch] lg:absolute lg:top-8 lg:block">
+          <div className="pointer-events-auto hidden max-w-[40ch] lg:absolute lg:top-8 lg:block">
             <p className="font-mono text-[11px] leading-4 text-slab-mute">
-              {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning: nomic-embed-text, 768 dimensions to 3D by PCA. Drag to turn.` : "\u00a0"}
+              {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning (nomic-embed-text, 768 dimensions to 3D by PCA). The faint lines link near neighbours; the pulses walk them toward the question, the way a DiskANN index search moves (an illustration). Drag to turn.` : "\u00a0"}
             </p>
             <button onClick={() => setPaused(!paused)} aria-pressed={paused} data-testid="pause-motion"
               className="mt-3 rounded-[4px] border border-slab-rule px-2.5 py-1 text-xs text-[#c9d2d5] transition-colors duration-150 hover:border-slab-mute hover:text-paper">
