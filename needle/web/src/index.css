@@ -74,18 +74,30 @@
   .num { font-variant-numeric: tabular-nums; }
   .panel { background: var(--color-paper); border: 1px solid var(--color-hair); border-radius: var(--radius-panel); }
   .label-row { font-size: var(--text-xs); line-height: 1rem; color: var(--color-mute); }
+  /* Buttons invert on hover and keyboard focus: the inverse colour wipes in from the left (studio-web rule 11:
+     hover transforms the thing, with a :focus-visible twin). Same box in both states, so nothing shifts. */
   .btn {
+    position: relative; isolation: isolate; overflow: hidden;
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    min-height: 2.5rem; padding: 0 1rem; border-radius: var(--radius-panel);
-    font-weight: 600; font-size: var(--text-sm); transition: background-color .15s ease-out, color .15s ease-out,
-      border-color .15s ease-out;
+    min-height: 2.5rem; padding: 0 1rem; border-radius: var(--radius-panel); border: 1px solid transparent;
+    font-weight: 600; font-size: var(--text-sm);
+    transition: color .28s cubic-bezier(.16,1,.3,1), border-color .28s cubic-bezier(.16,1,.3,1);
   }
+  .btn::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; background: var(--btn-hover-bg, transparent);
+    transform: scaleX(0); transform-origin: left center; transition: transform .34s cubic-bezier(.16,1,.3,1);
+  }
+  .btn:not(:disabled):hover::before, .btn:not(:disabled):focus-visible::before { transform: scaleX(1); }
   .btn:active { transform: translateY(1px); }
-  .btn-primary { background: var(--color-accent-text); color: #f5fbfb; }
-  .btn-primary:hover { background: var(--color-accent-strong); }
-  .btn-primary:disabled { background: var(--color-rule); color: var(--color-mute); }
-  .btn-quiet { background: transparent; color: var(--color-ink); border: 1px solid var(--color-rule); }
-  .btn-quiet:hover { border-color: var(--color-ink); }
+  .btn-primary { background: var(--color-accent-text); color: #f5fbfb; border-color: var(--color-accent-text); --btn-hover-bg: var(--color-paper); }
+  .btn-primary:not(:disabled):hover, .btn-primary:not(:disabled):focus-visible { color: var(--color-accent-strong); }
+  .btn-primary:disabled { background: var(--color-rule); border-color: var(--color-rule); color: var(--color-mute); }
+  .btn-quiet { background: transparent; color: var(--color-ink); border-color: var(--color-rule); --btn-hover-bg: var(--color-ink); }
+  .btn-quiet:not(:disabled):hover, .btn-quiet:not(:disabled):focus-visible { color: var(--color-paper); border-color: var(--color-ink); }
+  .btn-accent { background: var(--color-paper); color: var(--color-accent-strong); border-color: var(--color-accent-text); --btn-hover-bg: var(--color-accent-text); }
+  .btn-accent:not(:disabled):hover, .btn-accent:not(:disabled):focus-visible { color: #f5fbfb; }
+  .btn-ghost-dark { background: transparent; color: #c9d2d5; border-color: var(--color-slab-rule); --btn-hover-bg: var(--color-paper); }
+  .btn-ghost-dark:not(:disabled):hover, .btn-ghost-dark:not(:disabled):focus-visible { color: var(--color-ink); border-color: var(--color-paper); }
   .field {
     width: 100%; background: var(--color-paper); border: 1px solid var(--color-rule); border-radius: var(--radius-panel);
     padding: .625rem .75rem; font-size: 1rem; line-height: 1.5rem; color: var(--color-ink);

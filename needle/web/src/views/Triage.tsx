@@ -242,7 +242,7 @@ function TryNext({ result, demo, onSwitch, onSample }: {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-[6px] border border-accent/40 bg-accent-wash px-4 py-3" data-testid="try-next">
       <p className="min-w-0 flex-1 text-sm text-ink-2"><span className="mr-2 font-semibold text-accent-strong">Try next</span>{text}</p>
-      {action && <button className="btn btn-quiet min-h-9 border-accent-text bg-paper text-accent-strong hover:border-accent-strong" onClick={action.run}>{action.label}</button>}
+      {action && <button className="btn btn-accent min-h-9" onClick={action.run}>{action.label}</button>}
     </div>
   );
 }

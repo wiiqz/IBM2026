@@ -177,7 +177,7 @@ function Hero() {
               {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning (nomic-embed-text, 768 dimensions to 3D by PCA). The faint lines link near neighbours; the pulses walk them toward the question, the way a DiskANN index search moves (an illustration). Drag to turn.` : "\u00a0"}
             </p>
             <button onClick={() => setPaused(!paused)} aria-pressed={paused} data-testid="pause-motion"
-              className="mt-3 rounded-[4px] border border-slab-rule px-2.5 py-1 text-xs text-[#c9d2d5] transition-colors duration-150 hover:border-slab-mute hover:text-paper">
+              className="btn btn-ghost-dark mt-3 min-h-0 px-2.5 py-1 text-xs font-medium">
               {paused ? "Play motion" : "Pause motion"}
             </button>
           </div>
