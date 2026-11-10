@@ -27,7 +27,7 @@ NEEDLE is a vulnerability-triage tool that finds which of your services a vague 
 
 ## What it does
 
-Paste a vague security message, even one with no CVE yet, and NEEDLE returns the matching advisories, the services that run an affected version, and since when. One Db2 call searches 26,210 real advisories by keyword and by meaning. Each analyst signs in as their own Db2 user, so Db2 hides what they may not see: the senior analyst gets the embargoed Pillow advisory at rank 1, the junior analyst never gets it. An exact SQL version join marks each service AFFECTED, PREVIOUSLY_AFFECTED, NOT_CONFIRMED or UNKNOWN_COVERAGE, never "safe". Under row permissions, an analyst who sees 10% of the rows got about 2 of 10 results; NEEDLE picks a search depth per user and returned 10 of 10 on held-out queries, with 0 leaks. A local model writes a short memo, and a deterministic verifier deletes any sentence the SQL does not support.
+Paste a vague security message, even one with no CVE yet, and NEEDLE returns the matching advisories, the services that run an affected version, and since when. One Db2 call searches 26,210 real advisories by keyword and by meaning. Each analyst signs in as their own Db2 user, so Db2 hides what they may not see: the senior analyst gets the embargoed Pillow advisory at rank 1, the junior analyst never gets it. An exact SQL version join marks each service AFFECTED, PREVIOUSLY_AFFECTED, NOT_CONFIRMED or UNKNOWN_COVERAGE, never "safe". Under row permissions, an analyst who sees 10% of the rows got about 2 of 10 results; NEEDLE's router picks a search depth per user; on the vector leg it returned 10 of 10 on held-out queries, with 0 leaks. A local model writes a short memo, and a deterministic verifier deletes any sentence the SQL does not support.
 
 ## How we built it
 
@@ -50,12 +50,12 @@ NEEDLE turned into both a working triage tool and a measured finding about vecto
 
 - We showed that under row permissions every user shares one plan (one package-cache entry across five users, in both orders), that the plan sizes the vector index scan with one estimate, and that the index hands exactly 21 candidates (10 / 0.495) to the permission check, which section actuals confirmed in all 9 captured runs.
 - We measured the cost: a user who sees 10% of the rows got 2.05 of 10 rows on average (recall@10 0.205), and 36 of 170 queries returned nothing.
-- We ran a causal control: with the same permission written as a literal on a copy of the table, recall at 10% rose from 0.205 to 0.765, so the predicate's visibility to the optimizer drives the effect, not row access control itself.
-- Our router, fitted on dev queries only, restored recall@10 to 1.000, 1.000, 1.000, 0.988 and 0.987 on 89 held-out queries at 10 to 100% visibility (10-50 %: exact scans chosen by the router; 75-100 %: the vector index with search-list size 150), with 10 of 10 rows every time and 0 permission leaks.
-- Every user's exact results matched the admin's exact results with the permission written out by hand, on 170 of 170 queries, and our row-permission test files pass 35 of 35.
+- We ran a causal control: with the same permission written as a literal on a copy of the table, recall at 10% rose from 0.205 to 0.765, so the optimizer's estimate sets the size of the effect, not row access control itself.
+- Our router, fitted on dev queries only, restored recall@10 to 1.000, 1.000, 1.000, 0.988 and 0.987 on 89 held-out queries at 10 to 100% visibility (10-25 %: exact scans; 50 %: APPROX 100, which Db2 ran as a table scan; 75-100 %: the vector index with search-list size 150), with 10 of 10 rows every time and 0 permission leaks.
+- Every user's exact results matched the admin's exact results with the permission written out by hand, on 170 of 170 queries, and our row-permission test files pass 39 of 39 (28 of them against live Db2, 11 unit tests), in a full run of 206 passed tests.
 - Hybrid triage now answers in 53.5 ms median per query inside Db2, row permissions included (NDL_SENIOR, who may read every row), after we found and fixed a keyword-leg plan that scanned the whole posting index under the permission (BM25 244.8 → 27.2 ms on 30 queries, identical results).
 - BM25 in plain SQL matches the reference library on 30 of 30 queries, so the keyword leg sits under the same row permission as the vector leg.
-- We wrote seven short notes on Db2 behaviours we met while building on the vector features, each with a repro script and a suggested one-line change.
+- We wrote seven short notes on Db2 behaviours we met while building on the vector features, each with a repro script or evidence log and a suggested one-line change.
 - On the realistic paraphrase slice (150 synthetic chat-style rewrites), hybrid TRIAGE reached hit@10 0.453 (share of queries with a correct advisory in the top 10), against 0.360 for vector search alone and 0.340 for BM25 alone, measured as a real analyst user with row access control active (NDL_SENIOR, who may read every row). On the named and masked slices, which copy text from a correct advisory and are therefore upper bounds, hybrid hit@10 was 0.993 and 1.000.
 
 ## What we learned
@@ -78,7 +78,7 @@ ibm-db2, db2-vector-index, diskann, sql, sql-pl, python, ibm-db, langchain, lang
 |---|---|
 | 26,842 raw records | `needle/docs/evidence/data_validation_clp.txt` (ADV_RAW 26842) |
 | 26,210 searchable rows, index chosen at 26,210 not at 3,000, APPROX 4.8 ms vs EXACT 72.3 ms, overlap 0.995 | `needle/docs/evidence/g1_vector_index.md` |
-| Shared plan, FF 0.495, 21 candidates, 2.05 rows / 0.205, 36 of 170 zero rows, literal control 0.765, router held-out results, 170/170 oracle, 0 leaks, 35 passed, demo embargo case, `CREATE MASK` on CLOB rejected | `needle/docs/evidence/rcac_real.md`, `rcac_demo_case.txt`, `rcac_raw/pytest_all_after_demo_embargo.log` |
+| Shared plan, FF 0.495, 21 candidates, 2.05 rows / 0.205, 36 of 170 zero rows, literal control 0.765, router held-out results, 170/170 oracle, 0 leaks, 39 of 39 row-permission tests (28 against live Db2), 206 passed in the full run, demo embargo case, `CREATE MASK` on CLOB rejected | `needle/docs/evidence/rcac_real.md`, `rcac_demo_case.txt`, `pytest_final.txt` |
 | Topic-clustered visibility: NDL_P10 0 rows for 130 of 170 queries with APPROX 10; router held-out 10 of 10 rows, 0 leaks in every cell | `needle/docs/evidence/rcac_real.md` ("Correlated visibility", lines 105-135), `needle/eval/results/rcac_correlated.json` |
 | EXACT 16 ms at 10%, 146 ms at 100% | `needle/docs/evidence/rcac_real.md` finding 7 |
 | Postings 1,944,102; BM25 parity 30/30; JSON_TABLE `strict $`; `letsary`; 29/30 vs 0/30 | `needle/docs/evidence/triage_explain.md`, `fix_c1_h2.txt` |

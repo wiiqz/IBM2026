@@ -7,9 +7,9 @@ Field names follow submission_copy/FORMS.md, section "Unstop Round 2".
 
 NEEDLE — permission-aware hybrid retrieval in Db2
 
-## Project description (676 characters; limit 1,000)
+## Project description (698 characters; limit 1,000)
 
-NEEDLE is a vulnerability-triage tool that runs entirely inside IBM Db2. Paste a vague security message, even one with no CVE yet, and it returns the matching advisories, the services that run an affected version, and since when. Keyword (BM25) and vector (DiskANN) search are fused in one SQL statement under Db2 row and column access control. We also measured a problem: under row permissions a user who may see 10% of the rows got 2.05 of 10 vector results (recall 0.205). NEEDLE picks a search depth per user and returned 10 of 10 rows, recall 0.987 to 1.000, with 0 permission leaks on 89 held-out queries. Built on Db2 Community Edition 12.1.5.0 with real OSV PyPI data.
+NEEDLE is a vulnerability-triage tool that runs entirely inside IBM Db2. Paste a vague security message, even one with no CVE yet, and it returns the matching advisories, the services that run an affected version, and since when. Keyword (BM25) and vector (DiskANN) search are fused in one SQL statement under Db2 row and column access control. We also measured a problem: under row permissions a user who may see 10% of the rows got 2.05 of 10 vector results (recall 0.205). NEEDLE's router (vector leg) picks a search depth per user and returned 10 of 10 rows, recall 0.987 to 1.000, with 0 permission leaks on 89 held-out queries. Built on Db2 Community Edition 12.1.5.0 with real OSV PyPI data.
 
 ## Links
 
@@ -37,7 +37,7 @@ NEEDLE is a vulnerability-triage tool that runs entirely inside IBM Db2. Paste a
 - Cause measured in the plan: one shared plan for all users, optimizer estimate 0.495 for every user, so the vector index hands 21 candidates to the permission check.
 - Fix: a per-user router (exact scan or deeper approximate search) gave 10 of 10 rows, recall@10 0.987 to 1.000 and 0 permission leaks on 89 held-out queries.
 - Hybrid triage in one Db2 SQL PL call: BM25 in plain SQL (top-10 matches `rank_bm25` on 30 of 30 queries) plus DiskANN vector search, fused with reciprocal rank fusion, then an exact version join and a temporal table for "exposed since".
-- Web UI by William Lu (React + TypeScript over FastAPI) with real per-analyst Db2 sign-in; row permission tests pass 35 of 35 against live Db2.
+- Web UI by William Lu (React + TypeScript over FastAPI) with real per-analyst Db2 sign-in; row-permission tests pass 39 of 39 (28 of them against live Db2), and the full suite passes 206 of 206.
 
 ## Evidence
 

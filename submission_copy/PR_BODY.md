@@ -8,7 +8,7 @@
 
 - **Project Title:** NEEDLE — permission-aware hybrid retrieval in Db2
 - **Project Slug (must match folder name):** `submissions/needle/`
-- **Short Description (1–3 sentences):** NEEDLE is a vulnerability-triage tool that finds which of your services a vague security advisory hits, with all retrieval done inside IBM Db2. Keyword search (BM25 in plain SQL) and vector search (`FETCH APPROX` on a DiskANN vector index) run under Db2 row and column access control and are fused with reciprocal rank fusion in one SQL statement. We also measured how row permissions change approximate-search recall per user, and we route each user's query so their results do not silently shrink.
+- **Short Description (1–3 sentences):** NEEDLE is a vulnerability-triage tool that finds which of your services a vague security advisory hits, with all retrieval done inside IBM Db2. Keyword and vector search run and fuse in one Db2 SQL statement, and each analyst sees only the rows Db2 permits. Under row permissions, an analyst who may see 10% of the rows got 2.05 of 10 results; NEEDLE's per-user router returned 10 of 10 on held-out queries, with 0 leaks.
 - **Problem Solved & Target Audience:** A security report often arrives before it has a CVE ID or a package name, as a chat message or a mailing-list post, so a triager has to search advisories by meaning and by exact identifier at the same time. Some advisories are embargoed, and the common fix (filter after the vector search) silently returns fewer than k results. The question that matters, "which of our services run an affected version, and since when", must be answered by deterministic SQL, not by a model. NEEDLE is for PSIRT and on-call security triagers, service owners, and developers who build retrieval on Db2.
 
 ---
@@ -105,8 +105,9 @@ WHERE PACKAGE = 'pyyaml' ORDER BY SERVICE_ID;
 ```bash
 python -m pytest -q -m "not db" tests
 python -m pytest -q -m db tests/test_rcac.py tests/test_triage_rcac.py
+python -m pytest -q tests
 ```
-Our logged run of the `-m db` command: 24 passed, 10 deselected (`docs/evidence/rcac_raw/pytest_db.log`).
+Our final run of all tests (`python -m pytest -q tests`): 206 passed. Of these, 40 are `-m db` tests that ran against live Db2 and 166 are unit tests (`docs/evidence/pytest_final.txt`).
 
 ---
 
@@ -115,7 +116,7 @@ Our logged run of the `-m db` command: 24 passed, 10 deselected (`docs/evidence/
 - **Programming Languages:** Python (3.12+, built with 3.13), SQL, SQL PL, TypeScript.
 - **Frameworks & Libraries:** `ibm_db` 3.3.0, LangChain (`langchain-core`, `langchain-ollama`, `langchain-db2` as baseline), Haystack (component wrapper), FastAPI + React/Vite/TypeScript/Tailwind (web UI), Streamlit, pytest, `rank-bm25` (parity reference), matplotlib, Docker Compose, GitHub Codespaces.
 - **AI / LLM Framework (if applicable):** LangChain (primary: `Db2HybridRetriever`, `ChatOllama`); Haystack (`NeedleTriageComponent` in a Haystack `Pipeline`). `Db2HybridRetriever` is a LangChain `BaseRetriever`; the Haystack `NeedleTriageComponent` runs in a `Pipeline`; Db2 decides what matches, what is affected and who may see it; the model only explains.
-- **Model Provider & Model Name (if applicable):** Ollama, local: `nomic-embed-text` (768-dim embeddings) and `qwen3:14b` for the cited summary (evidence runs; set by `LLM_MODEL`, the screenshots used `qwen3:4b-instruct`). No cloud key is needed.
+- **Model Provider & Model Name (if applicable):** Ollama, local: `nomic-embed-text` (768-dim embeddings) and `qwen3:14b` for the cited summary. The memo model is `qwen3:14b`, selected by `LLM_MODEL`. No cloud key is needed.
 - **Where AI/LLM is Applied in the Workflow:** The embedding model turns the query into a vector for the Db2 vector leg. After Db2 returns the fused advisories and the exact SBOM join, the local model (`qwen3:14b` in the evidence runs) writes a short cited memo. A verifier then removes any sentence whose advisory, package or service ID is not in the SQL results, and any safety claim, URL or install command. The model never decides which advisory matches, which service is affected, or who may see what; Db2 decides all three.
 
 ---
@@ -154,7 +155,7 @@ NEEDLE is a triage tool, and the part we are proudest of is a measurement: what 
 - With row permissions active, `FETCH APPROX FIRST 10` still uses the vector index, and all users share one plan: after `FLUSH PACKAGE CACHE DYNAMIC`, five users left exactly one package-cache entry (one executable id), in both user orders.
 - That plan sizes the vector index scan with one compile-time filter factor (0.495) for every user, so the index hands 21 candidates (10 / 0.495) to the permission check. Section actuals confirm exactly 21 rows out of the vector index in all 9 captured activities.
 - A user who sees 10% of the rows therefore got 2.05 rows on average instead of 10 (recall@10 0.205), and 36 of 170 queries returned zero rows. A user who sees 25% got 5.08 rows (recall 0.502). This is how a shared plan behaves, not a defect: with the same permission written as a literal on a copy, the estimate moved to the true selectivity and recall at 10% rose from 0.205 to 0.765.
-- A per-user router (fitted on 81 dev queries, reported on 89 held-out queries only) restored recall@10 to 1.000 / 1.000 / 1.000 / 0.988 / 0.987 at 10 / 25 / 50 / 75 / 100% visibility (10-50 %: exact scans chosen by the router; 75-100 %: the vector index with search-list size 150), with 10 of 10 rows for every query and 0 permission leaks. Plain `APPROX 10` on the same held-out queries gave 0.208 / 0.506 / 0.852 / 0.947 / 0.948.
+- A per-user router (fitted on 81 dev queries, reported on 89 held-out queries only) restored recall@10 to 1.000 / 1.000 / 1.000 / 0.988 / 0.987 at 10 / 25 / 50 / 75 / 100% visibility (10-25 %: exact scans; 50 %: APPROX 100, which Db2 ran as a table scan; 75-100 %: the vector index with search-list size 150), with 10 of 10 rows for every query and 0 permission leaks. Plain `APPROX 10` on the same held-out queries gave 0.208 / 0.506 / 0.852 / 0.947 / 0.948.
 - Oracle check: for every user and all 170 queries, the user's own `FETCH EXACT` top-10 equals the admin's exact top-10 with the permission written as an explicit `WHERE` (170/170).
 - Without permissions, `FETCH APPROX FIRST 10` ran in 4.8 ms median vs 72.3 ms for `FETCH EXACT`, with top-10 overlap 0.995 (`docs/evidence/g1_vector_index.md`).
 
@@ -173,7 +174,7 @@ Pooled over all 450 queries, p50 is 53.5 ms for hybrid TRIAGE and 43.4 ms for BM
 
 **Keyword leg under the row permission (fixed).** After we activated row access control on `POSTING`, Db2 scanned all 1.94 million posting-index entries for every query instead of probing the query terms. A per-term `LATERAL` rewrite of `NEEDLE.BM25_SEARCH` (no DDL) restored the per-term index probe: on 30 queries as NDL_SENIOR, BM25 p50 fell from 244.8 to 27.2 ms and TRIAGE from 256.4 to 34.4 ms, with identical top-10 results, and 60 tests passed (`docs/evidence/rcac_posting_overhead.md`).
 
-**Security work.** An AI-assisted code review (Claude and Codex) of our own code found that the global BM25 statistics (`TERM_DF`, `CORPUS_STATS`) let an analyst subtract visible document frequencies from global ones and reconstruct the vocabulary of embargoed advisories, including their IDs. We now compute those statistics over public rows only, revoked SELECT on both tables from every analyst, and added a regression test for the difference attack (`docs/evidence/fix_c1_h2.txt`). The same review led to a stronger memo verifier (48 verifier tests, including Unicode-dash and fullwidth ID bypasses; `docs/evidence/fix_h1.txt`) and to a sign-in with each user's own Db2 credentials instead of a user picker.
+**Security work.** An AI-assisted code review (Claude and Codex) of our own code found that the global BM25 statistics (`TERM_DF`, `CORPUS_STATS`) let an analyst subtract visible document frequencies from global ones and reconstruct the vocabulary of embargoed advisories, including their IDs. We now compute those statistics over public rows only, revoked SELECT on both tables from every analyst, and added a regression test for the difference attack (`docs/evidence/fix_c1_h2.txt`). The same review led to a stronger memo verifier (59 verifier tests in the final run, including Unicode-dash and fullwidth ID bypasses; `docs/evidence/fix_h1.txt`, `docs/evidence/pytest_final.txt`) and to a sign-in with each user's own Db2 credentials instead of a user picker.
 
 **Notes we wrote along the way.** `docs/CONNECTOR_NOTES.md` lists seven Db2 behaviours we observed while building on the vector features (for example, `FETCH APPROX FIRST ? ROWS` does not use the vector index, and a nullable vector column leads to exact search unless the query adds `IS NOT NULL`), each with a repro script and a suggested one-line change.
 
