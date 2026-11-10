@@ -561,10 +561,40 @@ router is recall and row count, not speed. `NEEDLE.TRIAGE` under RCAC (NDL_SENIO
 ## Screenshots & Demo
 - **Demo video:** TODO(final): YouTube link (unlisted, viewable signed out), under 3 minutes.
 - **Live demo:** none (the app runs locally against your Db2).
-- Screenshots (`docs/screenshots/`), captured as NDL_JUNIOR with an earlier build of the user selector:
+- Screenshots (`docs/screenshots/`), web UI against the full corpus (26,210 advisories), light theme. Live checks
+  behind them: [`docs/evidence/web_ui_acceptance.txt`](docs/evidence/web_ui_acceptance.txt).
 
-![Ranking: keyword, vector and hybrid ranks per advisory](docs/screenshots/app_ndl_junior_ranking.jpg)
-![Affected services with the exposure window, and the verified memo](docs/screenshots/app_ndl_junior_exposure_memo.jpg)
+**1. Triage as NDL_JUNIOR.** The PyYAML chat message (no CVE): one Db2 call ranks keyword, vector and hybrid; the
+verdict slab names legacy-reporting (pyyaml 5.1, AFFECTED since 2020-02-27) from the exact SBOM join. Keywords alone
+rank MS SWIFT first; hybrid puts the PyYAML advisories on top. The router line shows the depth chosen for this identity.
+![Triage: verdict slab, router line, keyword / vector / hybrid columns](docs/screenshots/01_triage_ranking.png)
+
+**2. Services and the verified memo.** Exposure grouped by service with the advisories behind each status; the memo
+from the local model (qwen3:4b via LangChain) after the verifier.
+![Affected services and the verified memo](docs/screenshots/02_exposure_memo.png)
+
+**3. Same query, three Db2 identities.** The Pillow FlashPix prompt: Db2 returns the two embargoed advisories to
+NDL_SENIOR (hybrid ranks 1 and 2) and to nobody else; NDL_P10 (10% visibility) gets an exact scan and still 10 rows.
+![RCAC: senior vs junior vs 10% analyst](docs/screenshots/03_rcac_senior_vs_junior.png)
+
+**4. The finding.** Recall@10 and rows returned against the share of rows visible, re-plotted from
+`eval/results/rcac_recall_vs_selectivity.json`.
+![Recall vs visibility under RCAC, with the router](docs/screenshots/04_rcac_recall_chart.png)
+
+**5. Access plans.** `FETCH APPROX FIRST 10` uses `IXSCAN` on `VECIDX: NEEDLE.ADV_DOC_VIX`; `FETCH APPROX FIRST ?`
+falls back to a table scan (from `docs/evidence/g1_vector_index.md`).
+![Access plans: literal k vs parameter marker](docs/screenshots/05_explain_vector_index.png)
+
+**6. One plan for everyone.** Package-cache deltas after each identity: one executable id, the same rows read,
+different rows returned (`eval/results/rcac_plancache.json`).
+![Shared plan cache](docs/screenshots/06_shared_plan_cache.png)
+
+**7. Db2 catalog and RCAC counts.** CLP in the container: the VANN index, the permissions and mask, the temporal
+period, 27 embargoed rows; then the visible rows per identity ([`docs/evidence/verify_db2.txt`](docs/evidence/verify_db2.txt)).
+![Db2 CLP verification](docs/screenshots/07_verify_db2_clp.png)
+
+**8. Tests.** RCAC leak tests against the live database, and the verifier + API tests.
+![Tests passing](docs/screenshots/08_tests_passing.png)
 
 ## Security
 - **Row permissions on 4 tables.** `ADV_DOC`, `POSTING`, `ADV_ALIAS` and `ADV_AFFECTED` (`sql/04_rcac.sql`),

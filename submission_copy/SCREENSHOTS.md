@@ -1,5 +1,19 @@
 # Screenshots to capture (8)
 
+> **Status 2026-11-09 ~22:55 CST: all 8 captured** into `needle/docs/screenshots/` from the new web UI (React +
+> FastAPI) against a fresh full-corpus Db2 in William's Codespace; the old Streamlit JPGs were removed. Differences
+> from the plan below:
+> - 01/02: web UI, signed in as NDL_JUNIOR through the real sign-in form. The memo model is
+>   `qwen3:4b-instruct-2507-q4_K_M` (local on the Mac), not qwen3:14b; that run kept 3 sentences and removed 0.
+> - 03: the Finding page's "Same query, three Db2 identities" panel (demo switcher). NDL_SENIOR got
+>   GHSA-5x8w-8jj5-q52h at hybrid rank 1 and PYSEC-2026-4330 at rank 2 (both embargoed); NDL_JUNIOR and NDL_P10 got
+>   neither. Live checks: `needle/docs/evidence/web_ui_acceptance.txt`.
+> - 04/05/06: rendered by the web UI from `eval/results/*.json` and `docs/evidence/g1_vector_index.md` (not an editor).
+> - 07: CLP catalog queries as db2inst1 in the container; the per-identity counts (26,210 / 26,183 / 2,616) come
+>   from ibm_db as each analyst, so no password went on a command line. Text: `needle/docs/evidence/verify_db2.txt`.
+> - 08: `-m db tests/test_rcac.py tests/test_triage_rcac.py` now reports **28 passed, 11 deselected** (this plan said
+>   35); `tests/test_verify.py tests/test_api.py` 67 passed. The old logs are unchanged.
+
 Target folder: `needle/docs/screenshots/` (the README "Screenshots & Demo" section links there). PNG, about
 1600 px wide, light theme. Every screenshot must show only data that is already in the repository (no passwords,
 no `.env`, no tokens in a terminal prompt or browser bar).

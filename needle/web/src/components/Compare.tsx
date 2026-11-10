@@ -14,9 +14,11 @@ export default function Compare({ session, demo }: { session: Session | null; de
   };
   const ready = !!session && demo;
 
-  // ids that one identity sees and another does not (computed from what each identity's own Db2 call returned)
-  const seenBy = new Map<string, string[]>();
-  for (const i of res?.identities ?? []) for (const r of i.rankings?.hybrid ?? []) seenBy.set(r.id, [...(seenBy.get(r.id) ?? []), i.user]);
+  // What Db2 returned to the senior identity and not to the junior one (each from its own connection).
+  const ids = (u: string) => (res?.identities.find((i) => i.user === u)?.rankings?.hybrid ?? []).map((r) => r.id);
+  const senior = res?.identities.find((i) => i.user === "NDL_SENIOR");
+  const juniorIds = new Set(ids("NDL_JUNIOR"));
+  const onlySenior = res && !senior?.fatal ? ids("NDL_SENIOR").filter((id) => !juniorIds.has(id)) : [];
 
   return (
     <section aria-labelledby="compare-title" className="border-t border-hair pt-10" data-testid="compare">
@@ -43,7 +45,17 @@ export default function Compare({ session, demo }: { session: Session | null; de
       {err && <div className="mt-4"><ErrorState kind={err.kind} message={err.message} onRetry={run} /></div>}
       {busy && <div className="mt-5 grid gap-4 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-72" />)}</div>}
       {!busy && res && (
-        <div className="fade-in mt-5 grid gap-4 lg:grid-cols-3">
+        <p className="fade-in mt-5 text-sm" data-testid="compare-diff">
+          {onlySenior.length ? (
+            <>Returned to <b className="font-mono">NDL_SENIOR</b> and not to <b className="font-mono">NDL_JUNIOR</b>:{" "}
+              {onlySenior.map((id, n) => (
+                <span key={id}><b className="font-mono">{id}</b>{senior?.docs?.[id]?.embargoed ? <span className="text-affected"> (embargoed)</span> : null}{n < onlySenior.length - 1 ? ", " : ""}</span>
+              ))}. Db2's row permission removed {onlySenior.length === 1 ? "it" : "them"} before the result left the database.</>
+          ) : <>NDL_SENIOR and NDL_JUNIOR got the same hybrid top {res.k} for this query.</>}
+        </p>
+      )}
+      {!busy && res && (
+        <div className="fade-in mt-4 grid gap-4 lg:grid-cols-3">
           {res.identities.map((i) => (
             <div key={i.user} className="panel min-w-0 overflow-hidden">
               <div className="border-b border-hair px-4 py-3">
@@ -66,14 +78,14 @@ export default function Compare({ session, demo }: { session: Session | null; de
                   <ol className="py-1">
                     {(i.rankings?.hybrid ?? []).map((r) => {
                       const d = i.docs?.[r.id];
-                      const only = (seenBy.get(r.id) ?? []).length < res.identities.filter((x) => !x.fatal).length;
+                      const hiddenFromJunior = i.user === "NDL_SENIOR" && onlySenior.includes(r.id);
                       return (
                         <li key={r.id} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2 px-4 py-1.5">
                           <span className="font-mono text-xs text-mute num">{r.rank}</span>
                           <span className="min-w-0 truncate font-mono text-[13px] font-semibold">{r.id}</span>
                           <span className="flex gap-1">
                             {d?.embargoed && <Tag tone="red">EMBARGOED</Tag>}
-                            {only && <Tag tone="accent" title={`Returned to: ${(seenBy.get(r.id) ?? []).join(", ")}`}>not for all</Tag>}
+                            {hiddenFromJunior && <Tag tone="accent" title="Not returned to NDL_JUNIOR">not for junior</Tag>}
                           </span>
                         </li>
                       );

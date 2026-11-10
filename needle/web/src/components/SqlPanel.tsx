@@ -103,9 +103,9 @@ function Plans() {
                 cost {pl.total_cost?.toFixed(1)} · {pl.uses_vector_index ? <span className="font-semibold text-accent-strong">uses ADV_DOC_VIX</span> : <span className="font-semibold text-affected">table scan</span>}
               </span>
             </figcaption>
-            <pre className="code max-h-[460px] text-[11.5px]">
+            <pre className="code text-[11.5px]">
               {pl.plan.split("\n").map((l, i) => (
-                <span key={i} className={/IXSCAN|VECIDX|ADV_DOC_VIX/.test(l) ? "text-accent" : undefined}>{l + "\n"}</span>
+                <span key={i} className={/IXSCAN|VECIDX|ADV_DOC_VIX/.test(l) ? "font-semibold text-[#5fd3db]" : undefined}>{l + "\n"}</span>
               ))}
             </pre>
           </figure>

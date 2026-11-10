@@ -124,7 +124,7 @@ def make_llm(model: str | None = None, base_url: str | None = None) -> Any:
         temperature=0,
         reasoning=False,   # qwen3 thinking disabled; strip_think() still guards the output
         num_ctx=8192,
-        num_predict=450,
+        num_predict=int(os.environ.get("LLM_NUM_PREDICT", "800")),  # 450 cut long memos mid-sentence
         keep_alive="10m",
     )
 
