@@ -78,21 +78,21 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-hair bg-ground/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-6 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
           <a href="#/triage" onClick={() => go("triage")} className="flex items-center gap-2.5 text-ink no-underline">
             <Mark />
-            <span className="font-mono text-[15px] font-semibold tracking-[0.08em]">NEEDLE</span>
+            <span className="hidden font-mono text-[15px] font-semibold tracking-[0.08em] sm:inline">NEEDLE</span>
           </a>
-          <nav aria-label="Views" className="flex h-full items-stretch gap-1 overflow-x-auto">
+          <nav aria-label="Views" className="flex h-full min-w-0 items-stretch overflow-x-auto sm:gap-1">
             {VIEWS.map((v) => (
               <a key={v.id} href={`#/${v.id}`} onClick={() => go(v.id)} aria-current={view === v.id ? "page" : undefined}
-                className={`relative flex items-center px-3 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 ${view === v.id ? "text-ink" : "text-mute hover:text-ink"}`}>
+                className={`relative flex items-center px-2 text-sm font-medium whitespace-nowrap sm:px-3 no-underline transition-colors duration-150 ${view === v.id ? "text-ink" : "text-mute hover:text-ink"}`}>
                 {v.label}
                 {view === v.id && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-accent" />}
               </a>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-5">
+          <div className="ml-auto flex shrink-0 items-center gap-5">
             <div className="hidden items-center gap-4 md:flex">
               <Dot ok={healthErr ? false : health ? health.db.ok : null} label={`Db2 ${health?.db.database ?? ""}`.trim()}
                 detail={healthErr ? "API not reachable" : health?.db.detail} />
@@ -110,7 +110,7 @@ export default function App() {
                 <span className="sr-only">Demo identity</span>
                 <select value={session?.user ?? ""} disabled={switching} onChange={(e) => switchTo(e.target.value)}
                   data-testid="demo-identity"
-                  className="h-9 rounded-[6px] border border-rule bg-paper pr-8 pl-3 font-mono text-[13px] font-semibold">
+                  className="h-9 max-w-[9.5rem] rounded-[6px] border border-rule bg-paper pr-7 pl-2 font-mono text-[13px] font-semibold sm:max-w-none sm:pr-8 sm:pl-3">
                   <option value="" disabled>Pick a demo identity</option>
                   {config!.demo_users.map((u) => <option key={u.user} value={u.user}>{u.user}</option>)}
                 </select>
@@ -120,7 +120,7 @@ export default function App() {
         </div>
         {demo && (
           <div className="border-t border-amber/25 bg-amber-wash">
-            <div className="mx-auto flex max-w-[1600px] items-center gap-x-4 px-4 py-1.5 text-xs text-amber sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-0.5 px-4 py-1.5 text-xs text-amber sm:flex-nowrap sm:px-6 lg:px-8">
               <span className="shrink-0 font-mono font-semibold tracking-[0.02em]" data-testid="demo-badge">DEMO IDENTITY SWITCHER — NOT AUTHENTICATION</span>
               <span className="hidden min-w-0 truncate lg:inline">Passwords for these identities come from the server's .env. Default mode: sign in with your own Db2 user.</span>
               {switchErr && <span className="font-semibold text-affected">{switchErr.message}</span>}

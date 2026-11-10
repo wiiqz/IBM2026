@@ -25,7 +25,7 @@ passing one fixed depth to every user.
 
 ```mermaid
 graph TD
-    U["Analyst: Streamlit page (127.0.0.1) or CLI"] -->|"Db2 user ID + password"| SI["Sign-in: ibm_db connection as that user"]
+    U["Analyst: web UI (React + FastAPI) or Streamlit page, 127.0.0.1 only; or CLI"] -->|"Db2 user ID + password"| SI["Sign-in: ibm_db connection as that user"]
     SI --> R["Db2HybridRetriever (LangChain BaseRetriever)<br/>or needle.triage"]
     R -->|"search_query: prefix"| OL["Ollama nomic-embed-text<br/>768-dim"]
     R -->|"identifier-preserving tokens"| TK["needle.tokenize"]
@@ -60,6 +60,13 @@ graph TD
 ## Component Breakdown
 
 1. **User interface / client layer**
+   - `web/` (React 19 + TypeScript + Vite + Tailwind) over `src/needle/api.py` (FastAPI, `127.0.0.1` only, with a
+     Host-header check): sign-in as your own Db2 user (the password stays in the API process's memory for the
+     session); triage console with the exposure verdict, the three rank columns, the SQL with bound parameters and the
+     captured access plans, the services table and the verified memo; a Finding view re-plotted from
+     `eval/results/*.json` with a live three-identity comparison (demo switcher only); every number comes from the API or
+     an evidence file. The API calls the same `service.do_run` as the Streamlit page; the browser never sees SQL
+     built from text or any credential.
    - `src/needle/app.py` (Streamlit, bound to `127.0.0.1` by `.streamlit/config.toml`): sign-in with a Db2 user ID and
      password; query box; keyword / vector / hybrid rank columns; affected services with AFFECTED /
      PREVIOUSLY_AFFECTED / NOT_CONFIRMED / UNKNOWN_COVERAGE; the memo with the verifier's removed sentences.
@@ -468,9 +475,10 @@ the application. The router compensates outside the engine.
 - **Credentials:** read at runtime from `.env` (python-dotenv). Only `.env.example` with placeholders is committed.
   Setup scripts send analyst passwords to `chpasswd` on stdin, never as arguments, and never print them. Docker
   Compose passes `DB2_PASSWORD` to the container as an environment variable (the image's documented interface).
-- **Identity:** the Streamlit page signs the analyst in with their own Db2 user ID and password; RCAC binds to
+- **Identity:** the web UI and the Streamlit page sign the analyst in with their own Db2 user ID and password; RCAC binds to
   `SESSION_USER`. The demo switcher exists only with `NEEDLE_DEMO_SWITCHER=1` and is labelled "not authentication".
-- **Network:** Streamlit binds to `127.0.0.1`; the Db2 container port binds to `127.0.0.1:50000`.
+- **Network:** the FastAPI server (`python -m needle.api` refuses any other host) and Streamlit bind to `127.0.0.1`;
+  the Db2 container port binds to `127.0.0.1:50000`.
 - **SQL:** values are bound parameters. The only interpolated values are k and depth (validated integers inside the
   procedure) and, in the router helper, validated integers and identifiers. Query text never becomes SQL text.
 - **Least privilege:** analysts have CONNECT, SELECT and EXECUTE only; `db2inst1` is for setup, loading and

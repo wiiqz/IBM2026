@@ -73,6 +73,8 @@ export default function FindingView({ session, demo }: { session: Session | null
         </div>
       </section>
 
+      <PlanCache f={f} k={k} />
+
       <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16">
         <div className="max-w-[64ch] text-[15px] leading-7 text-ink-2">
           <h2 className="mb-3 text-xl font-semibold tracking-[-0.01em] text-ink">The fix: count first, then choose</h2>
@@ -131,5 +133,50 @@ function Stat({ value, label, red }: { value: string; label: string; red?: boole
       <dd className={`font-mono text-2xl font-semibold num ${red ? "text-affected" : "text-ink"}`}>{value}</dd>
       <dt className="text-xs text-mute">{label}</dt>
     </div>
+  );
+}
+
+function PlanCache({ f, k }: { f: Finding; k: number }) {
+  const pc = f.plan_cache;
+  return (
+    <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16" data-testid="plan-cache">
+      <div className="max-w-[64ch] text-[15px] leading-7 text-ink-2">
+        <h2 className="mb-3 text-xl font-semibold tracking-[-0.01em] text-ink">One plan for everyone</h2>
+        <p>
+          The package cache after each identity ran the same {pc.steps[0]?.queries ?? k} vector queries. There is one
+          entry and <b className="font-mono text-ink">{pc.distinct_executable_ids}</b> executable id for all of them,
+          and every identity reads the same rows. Only the rows that survive the permission differ.
+        </p>
+        <pre className="code mt-4 text-[11.5px] whitespace-pre-wrap">{pc.statement}</pre>
+      </div>
+      <div className="panel self-start overflow-x-auto">
+        <table className="w-full min-w-[560px] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-hair bg-surface/60 text-left text-xs text-mute">
+              <th className="px-4 py-2 font-medium">After identity</th>
+              <th className="px-4 py-2 font-medium">Executable id (last 16)</th>
+              <th className="px-4 py-2 text-right font-medium">Executions</th>
+              <th className="px-4 py-2 text-right font-medium">+ rows read</th>
+              <th className="px-4 py-2 text-right font-medium">+ rows returned</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pc.steps.map((st) => (
+              <tr key={st.user} className="border-b border-hair last:border-b-0">
+                <td className="px-4 py-2 font-mono text-[13px] font-semibold">{st.user}</td>
+                <td className="px-4 py-2 font-mono text-[13px] text-ink-2">{st.executable_id.slice(-16)}</td>
+                <td className="px-4 py-2 text-right font-mono text-[13px] num">{fmt.int(st.executions)}</td>
+                <td className="px-4 py-2 text-right font-mono text-[13px] num">{fmt.int(st.rows_read)}</td>
+                <td className={`px-4 py-2 text-right font-mono text-[13px] font-semibold num ${st.rows_returned < st.queries * k ? "text-affected" : ""}`}>{fmt.int(st.rows_returned)} <span className="font-normal text-mute">of {st.queries * k}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="border-t border-hair px-4 py-2 text-xs text-mute">
+          MON_GET_PKG_CACHE_STMT deltas, package cache flushed first. Source{" "}
+          <a href={evidenceUrl(f.sources.plan_cache)} target="_blank" rel="noreferrer">{f.sources.plan_cache}</a>.
+        </p>
+      </div>
+    </section>
   );
 }

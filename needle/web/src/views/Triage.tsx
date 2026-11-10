@@ -66,7 +66,7 @@ export default function Triage({ session, state }: { session: Session; state: Tr
             ))}
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="text-xs text-mute" id="k-label">Top k</span>
+            <span className="text-xs whitespace-nowrap text-mute" id="k-label">Top k</span>
             <Segmented label="Top k" value={String(k)} onChange={(v) => setK(Number(v))}
               options={[5, 10, 20].map((n) => ({ value: String(n), label: <span className="font-mono num">{n}</span> }))} />
             <button className="btn btn-primary min-w-[9.5rem]" onClick={run} disabled={busy} data-testid="run-triage">

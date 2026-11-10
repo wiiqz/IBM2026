@@ -356,8 +356,16 @@ def finding() -> dict:
     sel = _read_json("rcac_recall_vs_selectivity.json")
     corr = _read_json("rcac_correlated.json")
     ff = _read_json("rcac_ffsource.json")
+    pc = _read_json("rcac_plancache.json")
     p10 = corr["measure"]["NDL_P10"]
     first = ff["steps"][0]
+    fwd = next(r for r in pc["runs"] if r["order"] == "forward")
+    plan_cache = {"statement": pc["statement"], "order": "forward", "steps": [
+        {"user": st["user"], "cache_entries": len(st["cache_entries"]),
+         "executable_id": st["cache_entries"][0]["executable_id"], "executions": st["cache_entries"][0]["num_executions"],
+         "rows_read": st["cache_entries"][0]["delta_rows_read"], "rows_returned": st["cache_entries"][0]["delta_rows_returned"],
+         "queries": len(st.get("rows_returned_per_query") or [])} for st in fwd["steps"]],
+        "distinct_executable_ids": len({e["executable_id"] for st in fwd["steps"] for e in st["cache_entries"]})}
     return {
         "selectivity": sel,
         "estimate": {"permission_ff": first["permission_ff"][0], "vector_ixscan_est_rows": first["vector_ixscan_est_rows"],
@@ -368,7 +376,9 @@ def finding() -> dict:
                        "p10_zero_rows": p10["approx10_rows_histogram"]["0_rows"],
                        "p10_recall_zero": p10["approx10_recall_histogram"]["recall_0"],
                        "coverage_by_p": corr["build"]["coverage_by_p"]},
+        "plan_cache": plan_cache,
         "sources": {"selectivity": "eval/results/rcac_recall_vs_selectivity.json",
+                    "plan_cache": "eval/results/rcac_plancache.json",
                     "correlated": "eval/results/rcac_correlated.json",
                     "estimate": "eval/results/rcac_ffsource.json", "write_up": "docs/evidence/rcac_real.md"},
     }

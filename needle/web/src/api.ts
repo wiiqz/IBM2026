@@ -46,6 +46,10 @@ export interface Finding {
   selectivity: { split: string; n_queries: number; db2: string; series: { rcac: SeriesPoint[]; router: SeriesPoint[]; where: SeriesPoint[] } };
   estimate: { permission_ff: number; vector_ixscan_est_rows: number; srchlsiz: number; steps: string[]; same_estimate_every_step: boolean };
   correlated: { queries: number; p10_zero_rows: number; p10_recall_zero: number; coverage_by_p: Record<string, number> };
+  plan_cache: {
+    statement: string; order: string; distinct_executable_ids: number;
+    steps: { user: string; cache_entries: number; executable_id: string; executions: number; rows_read: number; rows_returned: number; queries: number }[];
+  };
   sources: Record<string, string>;
 }
 export interface ExplainPlan { name: string; sql: string; explain_time: string | null; total_cost: number | null; uses_vector_index: boolean | null; plan: string }

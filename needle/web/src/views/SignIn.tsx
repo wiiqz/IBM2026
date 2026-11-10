@@ -58,10 +58,10 @@ export default function SignIn({ demo, demoUsers, health, onSignedIn }: {
         {demo ? (
           <>
             <p className="mt-1 text-sm text-mute">Three identities with different row permissions. The server reads their passwords from its .env.</p>
-            <div className="mt-5 grid gap-2">
+            <div className="mt-5 border-y border-hair">
               {demoUsers.map((u) => (
                 <button key={u.user} onClick={() => submit(undefined, u.user)} disabled={!!busy}
-                  className="group flex items-center justify-between gap-4 rounded-[6px] border border-rule bg-paper px-4 py-3 text-left transition-colors duration-150 hover:border-ink disabled:opacity-60">
+                  className="group flex w-full items-center justify-between gap-4 border-b border-hair px-1 py-3 text-left transition-colors duration-150 last:border-b-0 hover:bg-ground disabled:opacity-60">
                   <span>
                     <span className="block font-mono text-[13px] font-semibold">{u.user}</span>
                     <span className="block text-xs text-mute">{u.role}</span>

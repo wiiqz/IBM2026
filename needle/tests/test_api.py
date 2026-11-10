@@ -181,6 +181,7 @@ def test_finding_numbers_come_from_the_evidence_files(client):
     assert rcac["NDL_P10"]["ixscan_est_rows"] == 21.0
     assert round(f["estimate"]["permission_ff"], 3) == 0.495 and f["estimate"]["vector_ixscan_est_rows"] == 21.0
     assert f["correlated"]["p10_zero_rows"] == 130 and f["correlated"]["queries"] == 170
+    assert f["plan_cache"]["distinct_executable_ids"] == 1 and len(f["plan_cache"]["steps"]) == 5
 
 
 def test_explain_plans_parsed_from_evidence(client):

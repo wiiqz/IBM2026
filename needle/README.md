@@ -242,14 +242,15 @@ Query: "heap overflow in the image library's FlashPix JPEG decoder can lead to c
 ## Tech Stack
 - **Backend / core:** Python 3.11+ (built with 3.13), `ibm_db`, SQL and SQL PL.
 - **Database:** IBM Db2 12.1.5 Community Edition.
-- **Frontend / UI:** Streamlit (one page) and a CLI.
+- **Frontend / UI:** React 19 + TypeScript + Vite + Tailwind (`web/`) over a local FastAPI (`src/needle/api.py`,
+  127.0.0.1 only); the original Streamlit page (`src/needle/app.py`) and a CLI still work.
 - **Libraries and tools:** LangChain, Haystack, Ollama, `rank-bm25` (parity tests), pytest, matplotlib,
   Docker Compose, GitHub Codespaces.
 
 ## Prerequisites
 - **Linux x86-64 host with Docker** for Db2 (Db2 vector indexes run on Linux AMD64 only). macOS on Apple silicon
   runs the image under emulation; vector indexes are not supported there. About 4 cores, 8-16 GB RAM, 15 GB disk.
-- Python 3.11 or newer, `pip`, `unzip`, `curl`.
+- Python 3.11 or newer, `pip`, `unzip`, `curl`. Node.js 20+ and `npm` to build the web UI (`web/`).
 - [Ollama](https://ollama.com) with `nomic-embed-text` (embeddings) and optionally `qwen3:14b` (memo).
   Sample mode below needs neither.
 
@@ -341,9 +342,16 @@ Copy `.env.example` to `.env`. Never commit `.env`. `set -a; . ./.env` needs pas
 
 ## Running the Project
 ```bash
-# Streamlit app (run from this folder so .streamlit/config.toml applies: it binds to 127.0.0.1)
-python -m streamlit run src/needle/app.py
+# Web UI (React) + local API (FastAPI). Both listen on 127.0.0.1 only.
+(cd web && npm ci && npm run build)      # once: builds web/dist
+python -m needle.api                     # serves the API and web/dist on http://127.0.0.1:8600
 #   sign in with a Db2 user ID and password, e.g. NDL_JUNIOR and the password you set in .env
+#   recorded demos only: NEEDLE_DEMO_SWITCHER=1 python -m needle.api   (one-click NDL_SENIOR / NDL_JUNIOR /
+#   NDL_P10, passwords read from .env; the page labels it "demo identity switcher - not authentication")
+# Front-end development with hot reload: python -m needle.api, then (cd web && npm run dev) -> http://127.0.0.1:5173
+
+# The original Streamlit page (same do_run; run from this folder so .streamlit/config.toml binds 127.0.0.1)
+python -m streamlit run src/needle/app.py
 
 # CLI: one triage call (connects as DB2_USER; the router picks the depth for that session user)
 python -m needle.triage "the yaml loader everyone uses runs python code from a crafted file" --k 5
@@ -367,7 +375,7 @@ finally:
     ibm_db.close(conn)
 ```
 
-**Search depth.** The Streamlit page, `Db2HybridRetriever`, `needle.triage.triage()` and the CLI ask the router
+**Search depth.** The web UI, the Streamlit page, `Db2HybridRetriever`, `needle.triage.triage()` and the CLI ask the router
 unless a depth is given. `TRIAGE` then uses depth 50 for high-visibility users (the vector leg keeps IXSCAN on
 `ADV_DOC_VIX`) and depth 128 for low-visibility users (Db2 runs the vector leg as an exact table scan)
 ([`docs/evidence/triage_router_explain.md`](docs/evidence/triage_router_explain.md)). The page prints the depth it
