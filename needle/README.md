@@ -737,8 +737,8 @@ post-filtering, `TRUNCATE` with a vector index, temporary space) in [`docs/CONNE
 ## Team Members & Credits
 | Name | GitHub Handle | Role / Contribution |
 |---|---|---|
-| Kartikeya | [@KnigguKniggu-droid](https://github.com/KnigguKniggu-droid) | Db2 retrieval, RCAC, evaluation |
-| William | [@wiiqz](https://github.com/wiiqz) | User interface, demo and presentation |
+| Kartikeya Lathi | [@KnigguKniggu-droid](https://github.com/KnigguKniggu-droid) | Db2 retrieval, RCAC, evaluation |
+| William Lu | [@wiiqz](https://github.com/wiiqz) | User interface, demo and presentation |
 
 Team name: **Needlepoint**.
 

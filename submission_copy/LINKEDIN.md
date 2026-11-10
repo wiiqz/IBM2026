@@ -11,9 +11,9 @@ I asked Db2 for 10 vector search results and got 2.
 
 An analyst who may see 10% of our security advisories got 2.05 of 10 rows on average (recall 0.205). 36 of 170 queries came back empty. Db2 row permissions share one query plan, and that plan sizes the vector index's initial batch as if each user sees about half the rows: 21 candidates for 10. The permission then removes what the user cannot see.
 
-William and I built NEEDLE for IBM Db2Hack 2026. You paste a vague security message, even one with no CVE yet, and it returns the matching advisories, the services that run an affected version, and since when. Keyword (BM25) and vector (DiskANN) search run inside Db2 under row and column access control, fused in one SQL statement. NEEDLE also picks a search depth for each user.
+William Lu and I built NEEDLE for IBM Db2Hack 2026. You paste a vague security message, even one with no CVE yet, and it returns the matching advisories, the services that run an affected version, and since when. Keyword (BM25) and vector (DiskANN) search run inside Db2 under row and column access control, fused in one SQL statement. NEEDLE also picks a search depth for each user.
 
-On 89 held-out queries, every user got 10 of 10 rows, recall@10 was 0.987 to 1.000, and there were 0 permission leaks. William built the web UI.
+On 89 held-out queries, every user got 10 of 10 rows, recall@10 was 0.987 to 1.000, and there were 0 permission leaks. William Lu built the web UI.
 
 Demo: [VIDEO_URL]
 PR: [PR_URL]
@@ -54,7 +54,7 @@ Source: hashtags the organisers use in their YouTube descriptions (organizers.md
 
 ## Short variant (2 lines, for a repost or comment)
 
-Ask Db2 for 10 vector results under a 10% row permission and you get 2.05 on average (recall 0.205). William and I built NEEDLE for IBM Db2Hack 2026: 10 of 10 rows, recall 0.987-1.000 on 89 held-out queries, 0 leaks.
+Ask Db2 for 10 vector results under a 10% row permission and you get 2.05 on average (recall 0.205). William Lu and I built NEEDLE for IBM Db2Hack 2026: 10 of 10 rows, recall 0.987-1.000 on 89 held-out queries, 0 leaks.
 Demo: [VIDEO_URL]  Code: https://github.com/wiiqz/IBM2026  #IBMDb2 #Db2Hack
 
 ## Evidence for each number
@@ -62,7 +62,7 @@ Demo: [VIDEO_URL]  Code: https://github.com/wiiqz/IBM2026  #IBMDb2 #Db2Hack
 - 2.05 of 10 rows, recall 0.205, 36 of 170 empty, 21 candidates: needle/README.md "What we found" items 3 and 4; needle/docs/evidence/rcac_real.md.
 - Router 10 of 10 rows, recall 0.987 to 1.000 (1.000 / 1.000 / 1.000 / 0.988 / 0.987), 0 leaks, 89 held-out queries: needle/README.md item 7; rcac_real.md held-out table.
 - Cause wording ("one query plan", "21 candidates for 10"): README items 1 to 3. The post does not say "not a bug"; README item 6 says "not an RCAC defect" if you want to add it in a comment.
-- William built the web UI: needle/README.md team table (William, github.com/wiiqz, "User interface, demo and presentation").
+- William Lu built the web UI: needle/README.md team table (William, github.com/wiiqz, "User interface, demo and presentation").
 - Wording checks: the post has none of first, only, unique, novel, guaranteed or safe; no emoji.
 
 ## Open points

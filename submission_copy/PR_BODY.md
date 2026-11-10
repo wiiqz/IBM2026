@@ -20,8 +20,8 @@
 
 | Full Name | GitHub Username | Email / Role |
 |---|---|---|
-| Kartikeya | @KnigguKniggu-droid | Db2 schema, retrieval SQL, RCAC research, evaluation |
-| William | @wiiqz | Web UI, demo and presentation |
+| Kartikeya Lathi | @KnigguKniggu-droid | Db2 schema, retrieval SQL, RCAC research, evaluation |
+| William Lu | @wiiqz | Web UI, demo and presentation |
 
 ---
 

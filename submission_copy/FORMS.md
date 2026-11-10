@@ -12,7 +12,7 @@ these forms usually ask for; copy the matching block into each field. Placeholde
 
 ## Common fields (both Google Forms)
 
-**Full name:** Kartikeya (team Needlepoint with William)
+**Full name:** Kartikeya (team Needlepoint with William Lu)
 
 **Email:** [EMAIL]
 

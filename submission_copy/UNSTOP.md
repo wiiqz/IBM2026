@@ -1,6 +1,6 @@
 # Unstop Round 2 ("Build & Final Submission") text
 
-Team Needlepoint: Kartikeya Lathi and William (GitHub wiiqz). Replace [PR_URL] and [VIDEO_URL] before submitting. Nothing has been submitted.
+Team Needlepoint: Kartikeya Lathi and William Lu (GitHub wiiqz). Replace [PR_URL] and [VIDEO_URL] before submitting. Nothing has been submitted.
 Field names follow submission_copy/FORMS.md, section "Unstop Round 2".
 
 ## Project title
@@ -37,7 +37,7 @@ NEEDLE is a vulnerability-triage tool that runs entirely inside IBM Db2. Paste a
 - Cause measured in the plan: one shared plan for all users, optimizer estimate 0.495 for every user, so the vector index hands 21 candidates to the permission check.
 - Fix: a per-user router (exact scan or deeper approximate search) gave 10 of 10 rows, recall@10 0.987 to 1.000 and 0 permission leaks on 89 held-out queries.
 - Hybrid triage in one Db2 SQL PL call: BM25 in plain SQL (top-10 matches `rank_bm25` on 30 of 30 queries) plus DiskANN vector search, fused with reciprocal rank fusion, then an exact version join and a temporal table for "exposed since".
-- Web UI by William (React + TypeScript over FastAPI) with real per-analyst Db2 sign-in; row permission tests pass 35 of 35 against live Db2.
+- Web UI by William Lu (React + TypeScript over FastAPI) with real per-analyst Db2 sign-in; row permission tests pass 35 of 35 against live Db2.
 
 ## Evidence
 
