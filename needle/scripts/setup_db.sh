@@ -112,6 +112,10 @@ if grep -qiE "Database name[[:space:]]*=[[:space:]]*${DB}[[:space:]]*$" <<<"$dbd
 else
   log "Creating database $DB with PAGESIZE 32 K (this can take several minutes)..."
   db2x "db2 create database $DB pagesize 32 K"
+  # Larger transaction log, set only on a new (not yet active) database. With the default 25 x 4 MB, a reload of
+  # NEEDLE.POSTING with its indexes in place stopped at 1.4M rows: SQL1476N / -964, db2diag ADM1822W "active
+  # transaction log is being held by dirty pages" (docs/evidence/bootstrap_test.md).
+  db2x "db2 update db cfg for $DB using LOGFILSIZ 16384 LOGPRIMARY 10 LOGSECOND 30"
 fi
 
 pagesize="$(db2x "db2 connect to $DB >/dev/null && db2 -x \"SELECT PAGESIZE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'USERSPACE1'\"; db2 connect reset >/dev/null" | tr -d '[:space:]')"
@@ -197,6 +201,19 @@ done
 if (( ${#selected[@]} == 0 )); then
   log "No SQL to run for mode '$mode'."
   exit 0
+fi
+
+if [[ "$mode" == "post" ]]; then
+  # Static SQL in SQL procedures (the MERGE in NEEDLE.SYNC_POSTING_ACL) is bound when the procedure is created in
+  # the pre phase, on EMPTY tables. That plan read about 19 billion rows on the full corpus (docs/evidence/
+  # bootstrap_test.md). Rebind after the load, so the optimizer uses the loaders' RUNSTATS statistics.
+  docker exec -i "$CONTAINER" su - "$INST" -c "bash -s -- $DB" <<'EOS' || log "rebind of NEEDLE procedures returned non-zero"
+db2 connect to "$1" >/dev/null || exit 1
+for p in $(db2 -x "SELECT RTRIM(ROUTINESCHEMA) || '.' || RTRIM(ROUTINENAME) FROM SYSCAT.ROUTINES WHERE ROUTINESCHEMA = 'NEEDLE' AND ROUTINETYPE = 'P' AND ORIGIN = 'Q'"); do
+  if db2 "CALL SYSPROC.REBIND_ROUTINE_PACKAGE('P', '$p', 'ANY')" >/dev/null; then echo "  rebound $p"; else echo "  rebind failed: $p"; fi
+done
+db2 connect reset >/dev/null
+EOS
 fi
 
 remote="/tmp/needle_sql_${mode}"

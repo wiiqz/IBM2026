@@ -47,6 +47,9 @@ die() { printf '\nBOOTSTRAP FAILED: %s\nLog: %s/%s\n' "$*" "$ROOT" "$LOG" >&2; e
 
 # Read one key from .env without printing it.
 env_get() { grep -E "^$1=" .env 2>/dev/null | tail -n 1 | cut -d= -f2- | tr -d '\r' || true; }
+# Read one key of the Codespace's own environment file (set in the browser terminal, missing over `gh codespace ssh`).
+CS_ENV_FILE=/workspaces/.codespaces/shared/.env
+cs_env() { grep -E "^$1=" "$CS_ENV_FILE" 2>/dev/null | tail -n 1 | cut -d= -f2- | tr -d '\r"' || true; }
 
 step "0. Checks (mode: $MODE)"
 for c in docker python3; do command -v "$c" >/dev/null || die "'$c' not found"; done
@@ -168,6 +171,10 @@ elif [[ "$MODE" == "sample" ]]; then
   python scripts/load_postings_in_codespace.py --sample || die "load_postings_in_codespace.py --sample"
 else
   command -v gh >/dev/null || die "'gh' (GitHub CLI) is needed for --full"
+  if ! gh auth status >/dev/null 2>&1 && [[ -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]] && [[ -n "$(cs_env GITHUB_TOKEN)" ]]; then
+    GH_TOKEN="$(cs_env GITHUB_TOKEN)"; export GH_TOKEN   # the Codespace's own repo token; never printed
+    echo "gh: using the Codespace token from $CS_ENV_FILE"
+  fi
   mkdir -p data/load
   gh release download "$RELEASE_TAG" -R "$RELEASE_REPO" -D data/load --skip-existing \
     $(printf -- '-p %s ' "${RELEASE_FILES[@]}" SHA256SUMS.txt) || die "gh release download $RELEASE_TAG -R $RELEASE_REPO"
@@ -218,7 +225,7 @@ fi
 
 # ---------------------------------------------------------------------------------------------------------------
 step "9. Done"
-CS_NAME="${CODESPACE_NAME:-<codespace-name, see: gh codespace list>}"
+CS_NAME="${CODESPACE_NAME:-$(cs_env CODESPACE_NAME)}"; CS_NAME="${CS_NAME:-<codespace-name, see: gh codespace list>}"
 cat <<EOF
 
 BOOTSTRAP OK: Db2 $DBNAME in container $CONTAINER on 127.0.0.1:$PORT ($MODE data) in $(( $(date +%s) - T0 )) s.
