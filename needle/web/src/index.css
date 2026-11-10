@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* NEEDLE tokens: see web/DESIGN.md. Values solved with studio-web's palette.mjs (hue 205). */
+@theme {
+  --color-ground: #f3f7f9;
+  --color-paper: #fbfcfd;
+  --color-surface: #e9eef0;
+  --color-ink: #101213;
+  --color-ink-2: #2a3033;
+  --color-mute: #676a6c;
+  --color-rule: #c4c8ca;
+  --color-hair: #dde3e5;
+  --color-accent: #009aa6;
+  --color-accent-text: #00757f;
+  --color-accent-strong: #005b63;
+  --color-accent-wash: #e1f1f2;
+  --color-affected: #c4251c;
+  --color-affected-ink: #ff5b4f;
+  --color-affected-wash: #fbeceb;
+  --color-amber: #8a5a00;
+  --color-amber-ink: #ffc23d;
+  --color-amber-wash: #fdf3dc;
+  --color-slab: #101213;
+  --color-slab-2: #1d2224;
+  --color-slab-mute: #9aa1a4;
+  --color-slab-rule: #30373a;
+
+  --font-sans: "Red Hat Text Variable", "Red Hat Text", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Red Hat Mono Variable", "Red Hat Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* fixed UI scale, ratio 1.2 from 14px */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-md: 1.05rem;
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1.26rem;
+  --text-lg--line-height: 1.7rem;
+  --text-xl: 1.512rem;
+  --text-xl--line-height: 1.9rem;
+  --text-2xl: 1.814rem;
+  --text-2xl--line-height: 2.2rem;
+  --text-3xl: 2.177rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 3.1rem;
+  --text-4xl--line-height: 3.2rem;
+
+  --radius-panel: 6px;
+  --radius-tag: 3px;
+}
+
+@layer base {
+  html { background: var(--color-ground); color: var(--color-ink); }
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+  }
+  ::selection { background: var(--color-accent-wash); color: var(--color-ink); }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+  a { color: var(--color-accent-text); text-underline-offset: 3px; }
+  a:hover { color: var(--color-accent-strong); }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  code, pre, kbd, samp { font-family: var(--font-mono); }
+}
+
+@layer components {
+  .num { font-variant-numeric: tabular-nums; }
+  .panel { background: var(--color-paper); border: 1px solid var(--color-hair); border-radius: var(--radius-panel); }
+  .label-row { font-size: var(--text-xs); line-height: 1rem; color: var(--color-mute); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: 2.5rem; padding: 0 1rem; border-radius: var(--radius-panel);
+    font-weight: 600; font-size: var(--text-sm); transition: background-color .15s ease-out, color .15s ease-out,
+      border-color .15s ease-out;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--color-accent-text); color: #f5fbfb; }
+  .btn-primary:hover { background: var(--color-accent-strong); }
+  .btn-primary:disabled { background: var(--color-rule); color: var(--color-mute); }
+  .btn-quiet { background: transparent; color: var(--color-ink); border: 1px solid var(--color-rule); }
+  .btn-quiet:hover { border-color: var(--color-ink); }
+  .field {
+    width: 100%; background: var(--color-paper); border: 1px solid var(--color-rule); border-radius: var(--radius-panel);
+    padding: .625rem .75rem; font-size: 1rem; line-height: 1.5rem; color: var(--color-ink);
+    transition: border-color .15s ease-out;
+  }
+  .field:hover { border-color: var(--color-mute); }
+  .field:focus { outline: none; border-color: var(--color-accent-text); box-shadow: 0 0 0 1px var(--color-accent-text); }
+  .skeleton { background: var(--color-surface); border-radius: 4px; }
+  .fade-in { animation: fade .18s ease-out both; }
+  @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+  .code {
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55; color: #d9e1e3; background: var(--color-slab);
+    border-radius: var(--radius-panel); padding: 1rem 1.125rem; overflow: auto; white-space: pre; tab-size: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in { animation: none; }
+  * { transition-duration: 0s !important; }
+}
