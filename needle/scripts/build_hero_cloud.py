@@ -1,6 +1,8 @@
 """Build the landing page's point cloud (web/public/cloud/) from the real corpus. Run where the data lives:
 
-    PYTHONPATH=src python scripts/build_hero_cloud.py --emb data/load/emb.jsonl.gz --queries qvecs.json --out web/public/cloud
+    PYTHONPATH=src python scripts/build_hero_cloud.py --emb data/load/emb.jsonl.gz --queries scripts/hero_queries.json --out web/public/cloud
+
+scripts/hero_queries.json holds the two sample questions and their nomic-embed-text 'search_query: ' vectors.
 
 Each public advisory becomes one point: its 768-dim nomic-embed-text vector projected to 3D with PCA (no other
 shaping). Embargoed advisories are LEFT OUT, so the public page cannot leak them. ROW_BUCKET (0-99) comes from

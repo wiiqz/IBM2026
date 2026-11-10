@@ -17,3 +17,16 @@ Operations
 - New git clone on this PC has no author: set repo-local `user.name` + GitHub noreply email before committing.
 - Codex CLI read-only sandbox on Windows cannot read files; use `workspace-write` with a strict no-edit prompt and a before/after hash check.
 - PowerShell 5.1 `Set-Clipboard -AsHtml` mangles non-ASCII (dashes/arrows) when pasting into Google Docs; prefer ASCII or another clipboard path.
+
+William's session (macOS arm64 app host, Db2 in a Codespace)
+- `bootstrap_codespace.sh --full` on a fresh 4-core Codespace: 684 s end to end (image pull included); smoke counts
+  26,210 / 26,183 / 2,616 match the evidence.
+- ibm_db 3.3.0 + Python 3.14 venv works on Apple Silicon against Db2 through `gh codespace ssh -- -N -L 50000:...`.
+- `gh auth refresh -s codespace` needs a browser device code; codes expire after ~15 min.
+- FastAPI validation errors echo the request body by default: override the RequestValidationError handler so a
+  password can never come back in a 422.
+- Lenis (smooth scroll) + a pinned section: invisible scroll spacers above a sticky stage swallow clicks unless they
+  are `pointer-events: none`; `overflow: hidden` on the sticky's ancestor breaks `position: sticky`.
+- A grid item holding an `overflow-x: auto` table needs `min-width: 0`, or the page scrolls sideways on phones.
+- Do not let a test read an evidence file that the same pytest run is redirecting into (race → false failure).
+- Never commit build caches (`tsconfig.tsbuildinfo`): one committed-then-deleted cache blocked a later rebase.

@@ -1,0 +1,32 @@
+
+    IBM Db2Hack 2026: Build AI Applications on IBM Db2 - Devpost
+      We've detected that you are using an unsupported browser.  Please
+      upgrade your browser
+      to Internet Explorer 10 or higher.
+            Descend
+              Overview
+                  My projects
+              Participants (48)
+              Resources
+              Rules
+                Project gallery
+                Updates
+                Discussions
+   Submission Guidelines 
+All participants must complete the following requirements:
+Submit the project through a Pull Request to the official GitHub repository.
+Follow the repository's submission template and documentation guidelines.
+Include working source code, setup instructions, and project documentation.
+Submit the GitHub PR URL through the official Google Form.
+Share the project use case on LinkedIn and tag the organising team.
+Final Submission Deadline: 10 November 2026, 5:00 PM IST.
+Incomplete submissions or submissions received after the deadline may not qualify for evaluation.
+ Evaluation Criteria 
+Projects will be evaluated based on the following criteria:
+IBM Db2 Integration & Depth (30%): Meaningful use of IBM Db2, including database connectivity, data operations, and relevant capabilities.
+Innovation & Impact (25%): Originality, problem relevance, practical usefulness, and potential impact.
+Technical Architecture & AI Integration (20%): Quality of system architecture and effective use of the selected AI framework.
+Reproducibility & Code Quality (15%): Code organisation, implementation quality, and ease of setup and execution.
+Documentation & Presentation (10%): Clarity of project documentation and demonstration.
+Prizes
+Judging Criteria and Winner Selection

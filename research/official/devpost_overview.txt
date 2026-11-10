@@ -1,0 +1,85 @@
+
+    IBM Db2Hack 2026: Build AI Applications on IBM Db2 - Devpost
+      We've detected that you are using an unsupported browser.  Please
+      upgrade your browser
+      to Internet Explorer 10 or higher.
+            Descend
+              Overview
+                  My projects
+              Participants (48)
+              Resources
+              Rules
+                Project gallery
+                Updates
+                Discussions
+      IBM Db2Hack 2026
+      Build AI Applications on IBM Db2
+  Join hackathon
+            Who can participate
+    Above legal age of majority in country of residence
+    Students only
+    Companies/professional organizations excluded from participation
+        All countries/territories, excluding
+          standard exceptions 
+            View full rules
+          November 10 at 8:30am EST to deadline
+        View schedule
+        Deadline: Nov 10, 2026 @  7:00pm IST
+            Apple
+            Google
+            Outlook
+                Online
+                Public
+              1 non-cash prize
+            48
+            participants
+                IBM
+                  Databases
+  About the Db2Hack 2026
+Ready to build something meaningful with AI and enterprise databases?
+Db2Hack 2026 is an online hackathon that challenges students, developers, and AI enthusiasts to build practical AI-powered applications using IBM Db2.
+Participants will explore how enterprise databases can power modern AI applications by combining IBM Db2 with frameworks such as LangChain, LlamaIndex, Haystack, CrewAI, and Langflow.
+You can build solutions involving Retrieval-Augmented Generation (RAG), intelligent AI agents, vector search, document intelligence, text-to-SQL, and AI-powered analytics.
+No prior IBM Db2 experience is required. Whether you are exploring AI for the first time or already building intelligent applications, this is an opportunity to learn, experiment, and demonstrate your skills through a working project.
+The goal is simple: Build. Innovate. Submit. Make your AI idea work with IBM Db2.
+          Requirements
+        What to Build
+Participants develop a functional implementation of their proposed solution, demonstrating meaningful IBM Db2 integration with their selected AI framework.
+Final submission must include:
+Working project and complete source code.
+Project documentation, including setup and execution instructions.
+System architecture and implementation details.
+Screenshots demonstrating the application.
+A demo video showcasing the working solution.
+GitHub Submission: Participants must fork the official repository, follow its submission template, add their project, and raise a Pull Request (PR) against the original repository.
+Google Form: Participants must submit their GitHub PR link through the official Google Form.
+Both the GitHub PR and Google Form submission are mandatory.
+      Prizes
+      1 non-cash prize
+                Trophy
+              3 winners
+            Top 3 Participants
+Trophy
+IBM Db2 Kit
+Certificate of Excellence
+Top 10 Participants
+IBM Db2 Goodies
+Certificate of Merit
+      Judges
+                Daya Nand
+                Senior Developer @IBM
+                Dhruv Chaturvedi
+                Developer @ IBM
+                Kunal Gola 
+                Developer @ IBM
+                Pawan Thakur
+                Developer @ IBM
+                Keshav Maheshwari
+                Developer @ IBM
+                Shaik Sadiq
+                Developer @ IBM
+      Judging Criteria
+        Evaluation Criteria
+        Selected projects with strong potential may receive an opportunity to contribute their use cases to the IBM Db2 GitHub Organisation.
+      Questions?
+      Email the hackathon manager

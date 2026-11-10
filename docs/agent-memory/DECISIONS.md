@@ -9,3 +9,16 @@
 - Internal files (CONTRACT.md, PLAN.md, reviews) excluded from the public PR via `make_submission.*` guards.
 - Team name **Needlepoint**; members Kartikeya + William; emails omitted from the public repo.
 - Nothing submitted until the user says so; user decided teams are allowed (do not re-raise solo rule).
+
+## William's session (2026-11-09 21:40 – 2026-11-10 00:35 CST)
+- UI = React/Vite/TS/Tailwind over FastAPI (user override of the handoff's Streamlit fallback); designed with
+  William's studio-web skill; **no IBM Carbon** look (user override). Fonts: Red Hat Text/Mono/Display (IBM family,
+  not Plex). Palette solved with the skill's palette.mjs (petrol hue 205; no green so nothing reads as "safe").
+- Security model kept: own Db2 sign-in by default; demo switcher only with NEEDLE_DEMO_SWITCHER=1 and labelled; API
+  binds 127.0.0.1 and refuses other hosts; Host-header check; password only in process memory; 422 errors never echo
+  the body; memo evidence comes only from the server's own SQL result.
+- Landing hero shows the **real corpus** (26,183 public advisories; the 27 embargoed rows are excluded from the public
+  page); the "2 of 10" readout is computed from data and confirmed against Db2.
+- Memo model on William's Mac: qwen3:4b-instruct (14b not pulled); num_predict raised to 800 because 450 truncated.
+- Stats added only where an evidence file backs them (How it works → Measured), nothing padded on the landing page.
+- `main` is kept equal to `needle` (fast-forward), as Kartikeya did.
