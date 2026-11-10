@@ -36,3 +36,5 @@
 - Final video is rendered in Claude.ai (v4 recipe, en-GB-Ryan voice, at most 2:58). The local draft
   `video/out/needle_demo.mp4` (168.87 s) is the fallback. Upload to YouTube unlisted.
 - Google Forms: use a new tab per form. The user does the Drive-picker upload and the WhatsApp join.
+  Same decision for `research/RESEARCH_BRIEF.md`, `research/debate/` and `research/william_session1/` (judge
+  profiles / simulated judge panel): removed from the repo, kept local on William's Mac, listed in `.gitignore`.
