@@ -237,3 +237,18 @@ The video pipeline (video/make_video.py, Playwright) drives the Streamlit UI tod
 video/scenes.py selectors or tell Kartikeya so the video can be re-captured.
 DO NOT fork, open PRs, upload, or submit anything — ask first.
 ```
+
+## 11. UI status (William's session, written 2026-11-09 ~22:20 CST)
+
+- **New front end:** `needle/web/` (React 19 + TypeScript + Vite + Tailwind, design spec in `needle/web/DESIGN.md`)
+  over `needle/src/needle/api.py` (FastAPI, 127.0.0.1 only). Both call the same `service.do_run` as the Streamlit
+  page; `app.do_run` still works (it is re-exported from `needle/src/needle/service.py`).
+- **Run it:** `cd needle/web && npm ci && npm run build`, then from `needle/`: `PYTHONPATH=src python -m needle.api`
+  -> http://127.0.0.1:8600 (demo: `NEEDLE_DEMO_SWITCHER=1` in front). Windows: `$env:PYTHONPATH="src"`.
+- **Views:** Triage (verdict slab, keyword / vector / hybrid columns, SQL + captured access plans, services table,
+  verified memo), The finding (charts re-plotted from `eval/results/*.json`, plan-cache proof, router table, live
+  three-identity compare in demo mode), How it works.
+- **Video:** `video/make_video.py --ui web` (now the default) drives the new UI; `--ui streamlit` keeps the old page.
+  All 26 scene actions were run once against the new UI. It needs `needle/web/dist` built first.
+- **Tests:** `tests/test_api.py` (19 API tests, no DB). The Streamlit tests are unchanged and pass.
+- `make_submission.sh` / `.ps1` now exclude `web/node_modules` and `web/dist`.
