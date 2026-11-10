@@ -49,3 +49,9 @@ export function lockScroll(on: boolean) {
   if (!lenis) return;
   if (on) lenis.stop(); else lenis.start();
 }
+
+/** Smoothly scroll to an absolute page offset (scroll-story chapter jumps). */
+export function scrollToY(y: number) {
+  if (lenis) lenis.scrollTo(y, { duration: 1.2, easing: (t) => 1 - (1 - t) ** 4 });
+  else window.scrollTo({ top: y });
+}

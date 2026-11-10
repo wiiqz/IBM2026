@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { api, fmt, type Finding } from "../api";
+import { scrollToY } from "../lib/scroll";
 import type { CloudInfo, CloudQuery, CloudScene, Lens } from "../components/CloudScene";
 
 const QUERY_LABEL: Record<string, string> = { pyyaml: "PyYAML message", flashpix: "Pillow FlashPix" };
@@ -89,7 +90,26 @@ function Hero() {
 
   // Scroll story (desktop): the stage pins and four chapters step the scene through the finding.
   const storyRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLOListElement>(null);
   const [chapter, setChapter] = useState(0);
+  // the chapter that is leaving, kept on screen for its exit fade
+  const [leaving, setLeaving] = useState(0);
+  const prevChapter = useRef(0);
+  useEffect(() => {
+    if (prevChapter.current && prevChapter.current !== chapter) {
+      setLeaving(prevChapter.current);
+      const t = window.setTimeout(() => setLeaving(0), 240);
+      prevChapter.current = chapter;
+      return () => window.clearTimeout(t);
+    }
+    prevChapter.current = chapter;
+  }, [chapter]);
+  const jumpTo = (c: number) => {
+    const el = storyRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + scrollY, span = el.offsetHeight - innerHeight;
+    scrollToY(top + span * (0.08 + ((c - 1 + 0.15) / 4) * 0.92));
+  };
   useEffect(() => {
     let raf = 0;
     const on = () => {
@@ -99,7 +119,9 @@ function Hero() {
         if (!el || innerWidth < 1024) { setChapter(0); return; }
         const r = el.getBoundingClientRect();
         const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
-        setChapter(p < 0.08 ? 0 : Math.min(4, 1 + Math.floor(((p - 0.08) / 0.92) * 4)));
+        const x = ((p - 0.08) / 0.92) * 4;
+        setChapter(p < 0.08 ? 0 : Math.min(4, 1 + Math.floor(x)));
+        railRef.current?.style.setProperty("--sub", p < 0.08 ? "0" : String(Math.min(1, x - Math.floor(Math.min(3.999, x)))));
       });
     };
     addEventListener("scroll", on, { passive: true });
@@ -186,28 +208,40 @@ function Hero() {
             )}
           </div>
         </div>
-        {chapter > 0 && chapters[chapter - 1] && (
-          <div aria-hidden key={chapter} className="fade-in pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden lg:block">
-            <div className="absolute inset-0 -top-40" style={{ background: "radial-gradient(70% 100% at 0% 100%, rgba(10,12,13,.92) 0%, rgba(10,12,13,.6) 45%, transparent 75%)" }} />
-            <div className="relative mx-auto max-w-[1600px] px-8 pb-16">
-              <h2 className="max-w-[16ch] font-display text-[clamp(2.6rem,4.6vw,4.6rem)] leading-[0.95] font-semibold tracking-[-0.035em]">{chapters[chapter - 1].title}</h2>
-              <p className="mt-5 max-w-[52ch] text-[17px] leading-7 text-[#c9d2d5]">{chapters[chapter - 1].body}</p>
-              {chapter === chapters.length && <a href="#/triage" className="btn btn-primary pointer-events-auto mt-7 no-underline">Open the triage console</a>}
+        {chapters.length > 0 && (chapter > 0 || leaving > 0) && (
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden lg:block">
+            <div className="absolute inset-0 -top-40 transition-opacity duration-300" style={{ opacity: chapter ? 1 : 0, background: "radial-gradient(70% 100% at 0% 100%, rgba(10,12,13,.92) 0%, rgba(10,12,13,.6) 45%, transparent 75%)" }} />
+            <div className="relative mx-auto grid max-w-[1600px] px-8 pb-16">
+              {leaving > 0 && leaving !== chapter && <ChapterText key={`out-${leaving}`} c={chapters[leaving - 1]} exit />}
+              {chapter > 0 && <ChapterText key={`in-${chapter}`} c={chapters[chapter - 1]} cta={chapter === chapters.length} />}
             </div>
           </div>
         )}
         {chapters.length > 0 && (
-          <ol aria-hidden className={`absolute top-8 right-8 z-10 hidden gap-2 text-right transition-opacity duration-300 lg:grid ${chapter ? "opacity-100" : "opacity-0"}`}>
-            {chapters.map((c, i) => (
-              <li key={c.name} className={`flex items-center justify-end gap-2.5 text-xs transition-colors duration-200 ${chapter === i + 1 ? "text-paper" : "text-slab-mute"}`}>
-                {c.name}<span className={`h-px transition-all duration-300 ${chapter === i + 1 ? "w-8 bg-accent" : "w-4 bg-slab-rule"}`} />
-              </li>
-            ))}
+          <ol ref={railRef} aria-label="Story chapters" className={`absolute top-1/2 right-8 z-20 hidden -translate-y-1/2 justify-items-end gap-5 transition-opacity duration-300 lg:grid ${chapter ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            {chapters.map((c, i) => {
+              const n = i + 1, on = chapter === n, done = chapter > n;
+              return (
+                <li key={c.name}>
+                  <button onClick={() => jumpTo(n)} aria-current={on ? "step" : undefined} tabIndex={chapter ? 0 : -1}
+                    className={`group flex items-center justify-end gap-4 text-right transition-colors duration-200 ${on ? "text-paper" : "text-slab-mute hover:text-[#dfe7e9]"}`}>
+                    <span className="grid">
+                      <span className={`font-mono text-[11px] transition-colors duration-200 ${on ? "text-[#9fe3e8]" : ""}`}>{n} / {chapters.length}</span>
+                      <span className={`text-[15px] leading-6 transition-[font-weight,transform] duration-300 ${on ? "font-semibold" : "font-medium"}`}
+                        style={{ transform: on ? "translateX(-4px)" : "none" }}>{c.name}</span>
+                    </span>
+                    <span className="relative h-[3px] w-14 overflow-hidden rounded-full bg-slab-rule">
+                      <span className={`absolute inset-0 rounded-full ${on ? "rail-fill bg-accent" : done ? "bg-accent/45" : ""}`} />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>
       </div>
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8" data-testid="story-chapters">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:pointer-events-none lg:px-8" data-testid="story-chapters">
         {chapters.map((c) => (
           <article key={c.name} className="border-t border-slab-rule py-10 lg:flex lg:h-[100svh] lg:items-end lg:border-0 lg:py-0 lg:opacity-0">
             <div>
@@ -218,6 +252,24 @@ function Hero() {
         ))}
       </div>
     </section>
+  );
+}
+
+function ChapterText({ c, exit = false, cta = false }: { c: { title: string; body: string }; exit?: boolean; cta?: boolean }) {
+  const words = c.title.split(" ");
+  return (
+    <div className={`col-start-1 row-start-1 self-end ${exit ? "chapter-exit" : ""}`}>
+      <h2 className="max-w-[16ch] font-display text-[clamp(2.6rem,4.6vw,4.6rem)] leading-[0.95] font-semibold tracking-[-0.035em]">
+        {words.map((w, i) => (
+          <Fragment key={i}>
+            <span className="word-mask"><span className={exit ? "" : "word-rise"} style={{ ["--i" as string]: i }}>{w}</span></span>
+            {i < words.length - 1 ? " " : ""}
+          </Fragment>
+        ))}
+      </h2>
+      <p className={`mt-5 max-w-[52ch] text-[17px] leading-7 text-[#c9d2d5] ${exit ? "" : "fade-up"}`} style={{ ["--d" as string]: `${0.36 + words.length * 0.055}s` }}>{c.body}</p>
+      {cta && <a href="#/triage" className={`btn btn-primary pointer-events-auto mt-7 no-underline ${exit ? "" : "fade-up"}`} style={{ ["--d" as string]: `${0.5 + words.length * 0.055}s` }}>Open the triage console</a>}
+    </div>
   );
 }
 
