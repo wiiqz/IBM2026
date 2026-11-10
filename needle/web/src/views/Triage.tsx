@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api, ApiError, fmt, MODES, SAMPLES, type Memo, type Mode, type Session, type TriageResult } from "../api";
 import { ErrorState, Kbd, Segmented, Skeleton } from "../components/ui";
 import Verdict from "../components/Verdict";
@@ -6,6 +6,7 @@ import Rankings from "../components/Rankings";
 import Exposure from "../components/Exposure";
 import SqlPanel from "../components/SqlPanel";
 import MemoCard from "../components/MemoCard";
+import Steps from "../components/Steps";
 
 export function useTriageState() {
   const [query, setQuery] = useState(SAMPLES[0].text);
@@ -20,19 +21,24 @@ export type TriageState = ReturnType<typeof useTriageState>;
 
 const MODE_LABEL: Record<Mode, string> = { keyword: "Keyword", vector: "Vector", hybrid: "Hybrid" };
 
-export default function Triage({ session, state }: { session: Session; state: TriageState }) {
+export interface NextAction { label: string; run: () => void }
+
+export default function Triage({ session, state, demo, autoRun, onAutoRunDone, onSwitch }: {
+  session: Session; state: TriageState; demo: boolean; autoRun: boolean; onAutoRunDone: () => void;
+  onSwitch: (user: string) => void;
+}) {
   const { query, setQuery, k, setK, mode, setMode, result, setResult, memo, setMemo } = state;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<ApiError | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
-  const run = async () => {
-    if (query.trim().length < 3 || busy) { box.current?.focus(); return; }
+  const run = async (text: string = query) => {
+    if (text.trim().length < 3 || busy) { box.current?.focus(); return; }
     setBusy(true);
     setErr(null);
     setMemo(null);
     try {
-      setResult(await api.triage(query.trim(), k));
+      setResult(await api.triage(text.trim(), k));
     } catch (e) {
       setResult(null);
       setErr(e as ApiError);
@@ -41,12 +47,20 @@ export default function Triage({ session, state }: { session: Session; state: Tr
     }
   };
 
+  useEffect(() => {
+    if (autoRun) { onAutoRunDone(); run(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const modeIds = useMemo(() => new Set((result?.rankings?.[mode] ?? []).map((r) => r.id)), [result, mode]);
   const ok = result && !result.fatal;
   const empty = ok && MODES.every((m) => (result.rankings[m] ?? []).length === 0);
 
   return (
     <div className="grid gap-6">
+      {!result && !busy && !err && (
+        <Steps current={2} done1={<>Signed in as <span className="font-mono font-semibold text-ink-2">{session.user}</span>, {fmt.int(session.visible_docs)} advisories visible.</>} />
+      )}
       <section aria-label="Query" className="panel p-4 sm:p-5">
         <label htmlFor="q" className="flex items-baseline justify-between gap-4">
           <span className="text-sm font-semibold">Advisory or chat message</span>
@@ -69,7 +83,7 @@ export default function Triage({ session, state }: { session: Session; state: Tr
             <span className="text-xs whitespace-nowrap text-mute" id="k-label">Top k</span>
             <Segmented label="Top k" value={String(k)} onChange={(v) => setK(Number(v))}
               options={[5, 10, 20].map((n) => ({ value: String(n), label: <span className="font-mono num">{n}</span> }))} />
-            <button className="btn btn-primary min-w-[9.5rem]" onClick={run} disabled={busy} data-testid="run-triage">
+            <button className="btn btn-primary min-w-[9.5rem]" onClick={() => run()} disabled={busy} data-testid="run-triage">
               {busy ? "Running…" : "Run triage"}
             </button>
           </div>
@@ -77,9 +91,8 @@ export default function Triage({ session, state }: { session: Session; state: Tr
       </section>
 
       {busy && <Loading user={session.user} />}
-      {!busy && err && <ErrorState kind={err.kind} message={err.message} onRetry={run} />}
-      {!busy && result?.fatal && <ErrorState kind={result.fatal.kind} message={result.fatal.message} onRetry={run} />}
-      {!busy && !result && !err && <FirstRun />}
+      {!busy && err && <ErrorState kind={err.kind} message={err.message} onRetry={() => run()} />}
+      {!busy && result?.fatal && <ErrorState kind={result.fatal.kind} message={result.fatal.message} onRetry={() => run()} />}
 
       {!busy && ok && (
         <div className="fade-in grid gap-6">
@@ -95,6 +108,8 @@ export default function Triage({ session, state }: { session: Session; state: Tr
           ) : (
             <>
               <Verdict result={result} modeIds={modeIds} mode={mode} />
+              <TryNext result={result} demo={demo} onSwitch={onSwitch}
+                onSample={() => { setQuery(SAMPLES[1].text); run(SAMPLES[1].text); }} />
               <section aria-label="Ranked advisories">
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
                   <div>
@@ -156,12 +171,31 @@ function Loading({ user }: { user: string }) {
   );
 }
 
-function FirstRun() {
+function TryNext({ result, demo, onSwitch, onSample }: {
+  result: TriageResult; demo: boolean; onSwitch: (u: string) => void; onSample: () => void;
+}) {
+  const embargoed = Object.values(result.docs).filter((d) => d.embargoed).map((d) => d.id);
+  let text: ReactNode, action: NextAction | null = null;
+  if (!demo) {
+    text = <>Sign in as another Db2 user to see how row access control changes this answer, or read why the search depth changes per user.</>;
+    action = { label: "Read the finding", run: () => { window.location.hash = "/finding"; } };
+  } else if (result.user === "NDL_SENIOR" && embargoed.length) {
+    text = <><b className="font-mono">{embargoed[0]}</b> is under embargo, and this senior analyst may see it. Ask the same question as the junior analyst: Db2 removes it before the result leaves the database.</>;
+    action = { label: "Run as NDL_JUNIOR", run: () => onSwitch("NDL_JUNIOR") };
+  } else if (result.user === "NDL_SENIOR") {
+    text = <>This answer has no embargoed advisory. The Pillow FlashPix sample does: run it, then compare with the junior analyst.</>;
+    action = { label: "Run the FlashPix sample", run: onSample };
+  } else if (result.user === "NDL_JUNIOR") {
+    text = <>Now ask as NDL_P10, who may see a tenth of the advisories. Under Db2's shared plan that analyst gets back far fewer rows than asked for; NEEDLE's router switches to an exact scan and still returns {result.k}.</>;
+    action = { label: "Run as NDL_P10", run: () => onSwitch("NDL_P10") };
+  } else {
+    text = <>That is the router at work: a full top {result.k} for an analyst who sees a tenth of the rows. The finding shows what happens without it.</>;
+    action = { label: "Read the finding", run: () => { window.location.hash = "/finding"; } };
+  }
   return (
-    <div className="grid gap-4 border-t border-hair pt-6 text-sm text-mute md:grid-cols-3">
-      <p><span className="font-semibold text-ink">Ranked advisories.</span> Keyword, vector and fused orderings from one Db2 call, each with its rank in the other legs.</p>
-      <p><span className="font-semibold text-ink">Affected services.</span> Exact package and version matches over the synthetic fleet's deploy history, with the date each exposure began.</p>
-      <p><span className="font-semibold text-ink">A checked memo.</span> A local model drafts it; any sentence naming an ID, service or status the SQL did not return is removed.</p>
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-[6px] border border-accent/40 bg-accent-wash px-4 py-3" data-testid="try-next">
+      <p className="min-w-0 flex-1 text-sm text-ink-2"><span className="mr-2 font-semibold text-accent-strong">Try next</span>{text}</p>
+      {action && <button className="btn btn-quiet min-h-9 border-accent-text bg-paper text-accent-strong hover:border-accent-strong" onClick={action.run}>{action.label}</button>}
     </div>
   );
 }

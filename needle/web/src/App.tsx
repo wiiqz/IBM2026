@@ -22,10 +22,11 @@ const viewFromHash = (): View => {
 
 function Mark() {
   return (
-    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden className="shrink-0">
-      <rect width="32" height="32" rx="6" fill="#101213" />
-      <path d="M8 25 L23 8" stroke="#f3f7f9" strokeWidth="2.4" strokeLinecap="round" />
-      <ellipse cx="22" cy="9" rx="2.6" ry="1.3" transform="rotate(-48 22 9)" fill="none" stroke="#009aa6" strokeWidth="1.6" />
+    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden className="shrink-0">
+      <rect width="32" height="32" rx="7" fill="#101213" />
+      <circle cx="8.2" cy="23.8" r="3.1" fill="#19c3cf" />
+      <path d="M7.2 24.8 L25.6 9.9 A2.25 2.25 0 0 0 22.1 6.4 Z" fill="#f3f7f9" />
+      <rect x="-2.3" y="-0.6" width="4.6" height="1.2" rx="0.6" transform="translate(21.6 10.4) rotate(-45)" fill="#101213" />
     </svg>
   );
 }
@@ -38,6 +39,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [switching, setSwitching] = useState(false);
   const [switchErr, setSwitchErr] = useState<ApiError | null>(null);
+  const [autoRun, setAutoRun] = useState(false);
   const triage = useTriageState();
 
   useEffect(() => initScroll(), []);
@@ -72,11 +74,12 @@ export default function App() {
     setSession(null);
     triage.reset();
   };
-  const switchTo = async (user: string) => {
+  const switchTo = async (user: string, runAfter = false) => {
     if (!user || user === session?.user) return;
     setSwitching(true);
     setSwitchErr(null);
-    try { signedIn(await api.login(user)); } catch (e) { setSwitchErr(e as ApiError); } finally { setSwitching(false); }
+    try { const s = await api.login(user); setAutoRun(runAfter); signedIn(s); }
+    catch (e) { setSwitchErr(e as ApiError); } finally { setSwitching(false); }
   };
 
   const demo = !!config?.demo_switcher;
@@ -141,7 +144,8 @@ export default function App() {
       <main className={view === "home" ? "hidden" : "mx-auto max-w-[1600px] px-4 pt-6 pb-16 sm:px-6 lg:px-8"}>
         {view === "triage" && (
           session
-            ? <Triage key={session.user} session={session} state={triage} />
+            ? <Triage key={session.user} session={session} state={triage} demo={demo} autoRun={autoRun}
+                onAutoRunDone={() => setAutoRun(false)} onSwitch={(u) => { window.scrollTo(0, 0); switchTo(u, true); }} />
             : <SignIn demo={demo} demoUsers={config?.demo_users ?? []} health={health} onSignedIn={signedIn} />
         )}
         {view === "finding" && <FindingView session={session} demo={demo} />}
