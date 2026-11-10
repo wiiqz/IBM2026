@@ -1,3 +1,33 @@
+# SESSION HANDOFF — Kartikeya's session ending 2026-11-10 ~03:00 CST (submission complete)
+
+1. **Requested:** finish everything: fixes from judge reviews, PR, video (Claude.ai chat), YouTube, both Google Forms,
+   Devpost, LinkedIn, William on Devpost; then a re-edit of the video in Vox editorial style.
+2. **Verified (on screen or by command):** PR #55 open, validator ALL PASSED after every update; full live suite 206
+   passed (`pytest_final.txt`); web acceptance ALL PASS; README snippet ran live (`readme_snippet_run.txt`); Form A
+   "Submission received" (resubmitted with the final video); Form B submitted by the user; Devpost "Project submitted!"
+   with video embed, thumbnail, 8 gallery images, team Kartikeya Lathi + William Lu; LinkedIn post + 2 comments
+   (organiser tags; video link); YouTube https://youtu.be/OFGFV6zC5QE public (editorial cut, 2:46, 1080p30,
+   -13.8 LUFS); first cut 5ZcVFBsjYLE unlisted.
+3. **Changed:** repo `needle` = `main` = `08a8f6f` (judge rounds 1-3: Db2 precision wording, scoped router claims,
+   "Why a Db2 user should care", runnable LangChain + Haystack + verifier snippet, run paths, test counts per run;
+   UI: error boundary, plain-word status labels, a11y/contrast, memo bold rendering, chart label; full names; video
+   links). Fork branch `submission/needle` = `dffc0ee`. Deck `submission_copy/NEEDLE_pitch.pptx/.pdf`. Release
+   `needle-demo-video-2026-11-10` (both cuts + SRT). IBM Db2 Developer Extension installed in VS Code.
+4. **Tested:** Db2-free 166 passed after every doc batch; tsc + vite build exit 0; validator per PR update.
+5. **Failed / incidents:** KaiClip YouTube suspended and the "Kartikeya Lathi" channel removed (impersonation): upload
+   moved to a new channel via OAuth; Devpost multi-file gallery did not save (fixed by per-image POST); Form A had a
+   stray "a" before the video URL and an empty notes box (fixed on resubmit); an agent briefly reused the user's
+   ChatGPT tab; tab group was closed once mid-step (recreated).
+6. **Decisions:** see `DECISIONS.md` "Kartikeya's session 2026-11-10 (00:55-03:00)".
+7. **Files needing attention:** none required. `video/yt_upload_needle.py` untracked on purpose.
+8. **Incomplete (optional):** Unstop Round 2 skipped by the user; organisers Gaurav Saxena, Keshav Maheshwari, Pawan
+   Thakur, Shaik Sadiq are plain text on LinkedIn (no IBM match in the @ menu); YouTube captions not uploaded
+   (upload-only scope); "Describe your contribution" on Devpost (optional).
+9. **Next step:** after 05:30 CST, with the user's OK: stop the :8600 API and delete both Codespaces. Otherwise wait
+   for results on 11 Nov.
+
+---
+
 # SESSION HANDOFF — Kartikeya's session ending 2026-11-10 ~00:55 CST (Kartikeya's PC, Claude Code orchestrator)
 
 1. **Requested:** merge William's UI, verify the whole build live, review and fix before submission, then start the

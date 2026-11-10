@@ -38,3 +38,12 @@
 - Google Forms: use a new tab per form. The user does the Drive-picker upload and the WhatsApp join.
   Same decision for `research/RESEARCH_BRIEF.md`, `research/debate/` and `research/william_session1/` (judge
   profiles / simulated judge panel): removed from the repo, kept local on William's Mac, listed in `.gitignore`.
+
+## Kartikeya's session 2026-11-10 (00:55-03:00)
+- Final video = Vox editorial re-cut (paper look, framed real footage, highlighter; no vaporwave/flash effects) at
+  https://youtu.be/OFGFV6zC5QE, public on a new YouTube channel; first cut unlisted, not deleted.
+- Form wording "YouTube public link" means public, not unlisted.
+- Honest scope: the held-out 0.987-1.000 is the router's vector leg; TRIAGE recall per user is not measured (README).
+- Devpost submitted at 02:45 CST and William Lu added by email invite; Unstop Round 2 skipped (user).
+- Organisers tagged in a LinkedIn comment where the @ menu matched an IBM headline; others stay plain text.
+- Codespaces kept until after the deadline, then deleted with the user's OK.

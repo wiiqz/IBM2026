@@ -33,8 +33,22 @@ William's session (macOS arm64 app host, Db2 in a Codespace)
 
 Kartikeya's session 2026-11-10 (submission prep)
 - Never kill a process by port without checking who owns it: an agent killed the demo server on port 8600.
-- Google Forms file upload uses a cross-origin Drive picker. The Chrome `file_upload` tool cannot reach it. The user
-  must click Browse.
+- SUPERSEDED (see the 03:00 lessons below): Google Forms file upload CAN be automated through the same-origin picker iframe.
 - Navigating away from a half-filled Google Form keeps the values when you go back (draft autosave). Use a new tab anyway.
 - The official submission repo's root `.gitignore` has `*.log`. Add a negation in the project's own `.gitignore` for
   every cited evidence log.
+
+## Kartikeya's session 2026-11-10 (00:55-03:00), verified
+- Google Forms upload: the picker iframe (docs.google.com/picker) is same-origin. Inject a helper file input, fill it
+  with the Chrome `file_upload` tool, click "Add file", copy the files into the newest VISIBLE picker iframe's input
+  with a DataTransfer and dispatch `change`. Old closed pickers stay in the DOM.
+- Typing `ctrl+a` with the Chrome `key` action in a Google Forms field can insert a literal "a". Select with JS
+  (`el.select()`) and then type.
+- Devpost gallery: the multi-file input does not persist. POST each image to the `new_software_photo` form action
+  with `authenticity_token` and `software_photo[attachable_id]`. Thumbnail: `#software-thumbnail-file-input`.
+- YouTube: an account can be blocked silently (suspended / removed channel). The API returns
+  `authenticatedUserAccountSuspended`; check YouTube Studio before relying on a channel.
+- Claude.ai video renders: 60 fps 2:46 took ~45 min on its 2-core sandbox; 30 fps editorial re-cut ~20 min. Ask for
+  30 fps under time pressure.
+- Judge-council loops (three personas, read-only, ranked file:line edits, a fixer agent that verifies each edit
+  against evidence) moved the projected score from ~78 to ~90 in three rounds.
