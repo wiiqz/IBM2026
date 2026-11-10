@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fmt, type ExposureRow, type Status, type TriageResult } from "../api";
 import { StatusLabel } from "./ui";
 
@@ -52,6 +52,7 @@ export default function Exposure({ result, modeIds }: { result: TriageResult; mo
         </div>
         <span className="rounded-[3px] border border-amber/40 bg-amber-wash px-1.5 py-[1px] font-mono text-[11px] font-semibold text-amber">SYNTHETIC FLEET · real PyPI versions</span>
       </div>
+      <ExposureTimeline rows={rows} />
       <div role="tablist" aria-label="Exposure status, services per status" className="mt-3 flex gap-1 overflow-x-auto border-b border-hair px-3 sm:px-4">
         {ORDER.map((s) => (
           <button key={s} role="tab" aria-selected={tab === s} onClick={() => setTab(s)}
@@ -111,4 +112,81 @@ function Th({ children, right }: { children: ReactNode; right?: boolean }) {
 }
 function Td({ children, mono, right, className = "" }: { children: ReactNode; mono?: boolean; right?: boolean; className?: string }) {
   return <td className={`px-4 py-2 align-top whitespace-nowrap first:pl-4 sm:first:pl-5 ${mono ? "font-mono text-[13px] num" : ""} ${right ? "text-right" : ""} ${className}`}>{children}</td>;
+}
+
+/* Exposure over time: one bar per service window from the temporal SBOM join. AFFECTED runs from "exposed since"
+   to today (since + DAYS_EXPOSED); PREVIOUSLY_AFFECTED from since to "fixed on". Status is also written, not
+   carried by colour alone. */
+function ExposureTimeline({ rows }: { rows: ExposureRow[] }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(900);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(Math.max(320, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const day = 86400000;
+  const bars = useMemo(() => {
+    const out: { key: string; service: string; pkg: string; status: Status; from: number; to: number; days: number }[] = [];
+    for (const st of ["AFFECTED", "PREVIOUSLY_AFFECTED"] as Status[]) {
+      for (const g of group(rows.filter((r) => r.STATUS === st), st)) {
+        if (!g.since) continue;
+        const from = Date.parse(g.since.slice(0, 10));
+        const to = st === "AFFECTED" ? from + (g.days ?? 0) * day : g.until ? Date.parse(g.until.slice(0, 10)) : from + (g.days ?? 0) * day;
+        out.push({ key: g.key, service: g.service, pkg: `${g.pkg}${g.version ? "==" + g.version : ""}`, status: st, from, to, days: g.days ?? 0 });
+      }
+    }
+    return out.sort((a, b) => a.from - b.from);
+  }, [rows]);
+  if (!bars.length) return null;
+  const today = Math.max(...bars.filter((b) => b.status === "AFFECTED").map((b) => b.to), ...bars.map((b) => b.to));
+  const start = Math.min(...bars.map((b) => b.from)) - 60 * day;
+  const L = Math.min(260, w * 0.32), R = 92, rowH = 24, top = 8, axis = 26;
+  const H = top + bars.length * rowH + axis;
+  const x = (t: number) => L + ((t - start) / (today - start)) * (w - L - R);
+  const years: number[] = [];
+  for (let yv = new Date(start).getUTCFullYear() + 1; yv <= new Date(today).getUTCFullYear(); yv++) years.push(yv);
+  return (
+    <figure className="mx-4 mt-4 sm:mx-5" data-testid="exposure-timeline" aria-label="Exposure windows per service">
+      <figcaption className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-xs text-mute">
+        <span className="text-sm font-semibold text-ink">Exposure over time</span>
+        <span className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-5 rounded-sm bg-affected" />AFFECTED, still running</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-5 rounded-sm bg-[#9aa1a4]" />previously affected, ended</span>
+        </span>
+      </figcaption>
+      <div ref={box}>
+        <svg width={w} height={H} className="block" role="img"
+          aria-label={bars.map((b) => `${b.service} ${b.pkg}: ${b.status === "AFFECTED" ? "affected" : "previously affected"} for ${b.days} days`).join("; ")}>
+          {years.map((yv) => {
+            const xx = x(Date.UTC(yv, 0, 1));
+            return (
+              <g key={yv}>
+                <line x1={xx} x2={xx} y1={top - 4} y2={H - axis + 4} stroke="#dde3e5" />
+                <text x={xx} y={H - 8} textAnchor="middle" className="fill-mute font-mono text-[10px]">{yv}</text>
+              </g>
+            );
+          })}
+          <line x1={x(today)} x2={x(today)} y1={top - 4} y2={H - axis + 4} stroke="#101213" strokeDasharray="3 3" />
+          <text x={x(today)} y={H - 8} textAnchor="middle" className="fill-ink font-mono text-[10px] font-semibold">today</text>
+          {bars.map((b, i) => {
+            const yy = top + i * rowH, red = b.status === "AFFECTED";
+            return (
+              <g key={b.key}>
+                <text x={0} y={yy + rowH / 2} dy="0.32em" className="fill-ink text-[12px] font-semibold">{b.service}</text>
+                <text x={L - 10} y={yy + rowH / 2} dy="0.32em" textAnchor="end" className="fill-mute font-mono text-[10.5px]">{b.pkg}</text>
+                <rect x={x(b.from)} y={yy + 6} width={Math.max(3, x(b.to) - x(b.from))} height={rowH - 12} rx={3}
+                  fill={red ? "#c4251c" : "#9aa1a4"} opacity={red ? 0.92 : 0.75} />
+                <text x={x(b.to) + 8} y={yy + rowH / 2} dy="0.32em" className={`font-mono text-[11px] ${red ? "fill-affected font-semibold" : "fill-mute"}`}>
+                  {b.days.toLocaleString("en-US")} d{red ? "" : ", ended"}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </figure>
+  );
 }

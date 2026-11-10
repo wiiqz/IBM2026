@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fmt, MODES, type Doc, type Mode, type Ranked, type TriageResult } from "../api";
 import { Tag } from "./ui";
 import { lockScroll } from "../lib/scroll";
+import RankFlow from "./RankFlow";
 
 const HEAD: Record<Mode, { title: string; how: string }> = {
   keyword: { title: "Keyword", how: "BM25 in plain SQL over NEEDLE.POSTING" },
@@ -15,6 +16,7 @@ export default function Rankings({ result, mode }: { result: TriageResult; mode:
   const fleet = useMemo(() => new Set(result.exposure.map((r) => r.PACKAGE.toLowerCase())), [result]);
   return (
     <>
+      <div className="mb-4"><RankFlow result={result} hot={hot} onHot={setHot} /></div>
       <div className="grid gap-4 lg:grid-cols-3">
         {MODES.map((m) => (
           <div key={m} className={`panel min-w-0 overflow-hidden ${m === mode ? "border-t-[3px] border-t-accent" : "hidden border-t-[3px] border-t-hair lg:block"}`} data-testid={`rank-${m}`}>
