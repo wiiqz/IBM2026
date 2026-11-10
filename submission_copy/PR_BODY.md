@@ -122,7 +122,7 @@ Our last run of the RCAC files: 35 passed (`docs/evidence/rcac_raw/pytest_all_af
 ## 4. Technology Stack & AI / LLM Usage
 
 - **Programming Languages:** Python (3.11+, built with 3.13), SQL, SQL PL.
-- **Frameworks & Libraries:** `ibm_db` 3.3.0, LangChain (`langchain-core`, `langchain-ollama`, `langchain-db2` as baseline), Haystack (component wrapper), Streamlit, pytest, `rank-bm25` (parity reference), matplotlib, Docker Compose, GitHub Codespaces.
+- **Frameworks & Libraries:** `ibm_db` 3.3.0, LangChain (`langchain-core`, `langchain-ollama`, `langchain-db2` as baseline), Haystack (component wrapper), FastAPI + React/Vite/TypeScript/Tailwind (web UI), Streamlit, pytest, `rank-bm25` (parity reference), matplotlib, Docker Compose, GitHub Codespaces.
 - **AI / LLM Framework (if applicable):** LangChain (primary: `Db2HybridRetriever`, `ChatOllama`); Haystack (`NeedleTriageComponent` in a Haystack `Pipeline`).
 - **Model Provider & Model Name (if applicable):** Ollama, local: `nomic-embed-text` (768-dim embeddings) and `qwen3:14b` (cited summary). No cloud key is needed.
 - **Where AI/LLM is Applied in the Workflow:** The embedding model turns the query into a vector for the Db2 vector leg. After Db2 returns the fused advisories and the exact SBOM join, `qwen3:14b` writes a short cited memo. A verifier then removes any sentence whose advisory, package or service ID is not in the SQL results, and any safety claim, URL or install command. The model never decides which advisory matches, which service is affected, or who may see what; Db2 decides all three.
@@ -131,7 +131,7 @@ Our last run of the RCAC files: 35 passed (`docs/evidence/rcac_raw/pytest_all_af
 
 ## 5. Demonstration & Links
 
-- **Live Demo URL (if hosted):** None. The app runs locally against your own Db2 (Streamlit bound to 127.0.0.1).
+- **Live Demo URL (if hosted):** None. The app runs locally against your own Db2 (web UI and API bound to 127.0.0.1).
 - **Demo Video (YouTube / Loom / Drive):** [VIDEO_URL]
 - **External Source Repo (if hosted separately):** [REPO_URL]
 - **Presentation / Slides URL (optional):** None.

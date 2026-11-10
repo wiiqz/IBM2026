@@ -578,12 +578,14 @@ router is recall and row count, not speed. `NEEDLE.TRIAGE` under RCAC (NDL_SENIO
   its definer's authority. This closes a difference attack (global DF minus visible postings) that recovered the
   vocabulary and IDs of embargoed advisories. Test: the attack returns an empty set
   ([`docs/evidence/fix_c1_h2.txt`](docs/evidence/fix_c1_h2.txt)).
-- **Sign-in with real Db2 identities.** The Streamlit page asks for a Db2 user ID and password and runs every
-  statement on that connection, so RCAC binds to the person who signed in. The one-click switch between NDL_SENIOR,
+- **Sign-in with real Db2 identities.** The web UI (through `src/needle/api.py`) and the Streamlit page ask for a Db2
+  user ID and password and run every statement on that connection, so RCAC binds to the person who signed in. The one-click switch between NDL_SENIOR,
   NDL_JUNIOR and NDL_P10 used in the recorded demo appears only with `NEEDLE_DEMO_SWITCHER=1`, reads the demo passwords from
   `.env` on the server, and is labelled "not authentication" on the page. Tests: sign-in binds to the typed identity;
   a wrong password and a connection-string injection in the user ID both fail ([`docs/evidence/fix_h1.txt`](docs/evidence/fix_h1.txt)).
-- **Network.** Streamlit binds to `127.0.0.1` (`.streamlit/config.toml`). The Db2 container port binds to
+- **Network.** The FastAPI server binds to `127.0.0.1` (`python -m needle.api` refuses any other host; a Host-header
+  check blocks DNS rebinding) and keeps the password only in its process memory for the session; validation errors
+  never echo the request body (`tests/test_api.py`). Streamlit binds to `127.0.0.1` (`.streamlit/config.toml`). The Db2 container port binds to
   `127.0.0.1` (`docker-compose.yml`). There is no TLS on the local container (`DB2_SECURITY=false`).
 - **Least privilege.** Analysts hold CONNECT, SELECT on the tables the app reads, and EXECUTE on `TRIAGE`,
   `TRIAGE_MODE` and `BM25_SEARCH`. `db2inst1` is used only for setup, loading and measurements. As NDL_JUNIOR the

@@ -22,7 +22,6 @@ if str(SRC) not in sys.path:
 
 import html  # noqa: E402
 import os  # noqa: E402
-import time  # noqa: E402
 
 import pandas as pd  # noqa: E402
 import streamlit as st  # noqa: E402

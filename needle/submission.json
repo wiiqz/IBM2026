@@ -45,7 +45,7 @@
   },
   "tech_stack": {
     "languages": ["Python", "SQL", "SQL PL"],
-    "frameworks": ["LangChain", "Haystack", "Streamlit", "pytest"],
+    "frameworks": ["LangChain", "Haystack", "FastAPI", "React", "Vite", "Tailwind CSS", "Streamlit", "pytest"],
     "ai_models": ["Ollama nomic-embed-text (768-dim embeddings)", "Ollama qwen3:14b (memo)"]
   }
 }
