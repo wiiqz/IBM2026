@@ -31,7 +31,7 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   float near = smoothstep(uCamDist + 2.4, uCamDist - 1.8, -mv.z);
   vec3 col = mix(vec3(0.22, 0.34, 0.42), vec3(0.62, 0.74, 0.77), near);
-  float a = mix(0.035, 0.30, vis) * mix(0.35, 1.0, near);
+  float a = mix(0.03, 0.24, vis) * mix(0.32, 1.0, near);
   if (aRole > 0.5) a = 0.0;
   vColor = col; vAlpha = a;
   gl_PointSize = uSize * uPixelRatio * (3.2 / -mv.z) * mix(0.75, 1.15, near);
@@ -62,7 +62,7 @@ void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
   vec3 ring = vec3(0.03, 0.04, 0.045);
-  gl_FragColor = vec4(mix(vColor * 1.6, ring, smoothstep(0.30, 0.36, d)), 1.0 - smoothstep(0.46, 0.5, d));
+  gl_FragColor = vec4(mix(vColor * 1.25, ring, smoothstep(0.30, 0.36, d)), 1.0 - smoothstep(0.46, 0.5, d));
 }`;
 const HALO_FRAG = /* glsl */ `
 varying vec3 vColor;
@@ -70,7 +70,7 @@ void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
   float g = pow(1.0 - d * 2.0, 2.4);
-  gl_FragColor = vec4(vColor * g, g * 0.5);
+  gl_FragColor = vec4(vColor * g, g * 0.32);
 }`;
 const PULSE_VERT = /* glsl */ `
 uniform float uTime, uPixelRatio;
@@ -99,7 +99,7 @@ void main() {
 }`;
 const EDGE_FRAG = /* glsl */ `
 varying float vNear;
-void main() { gl_FragColor = vec4(vec3(0.30, 0.62, 0.68), 0.055 * mix(0.3, 1.0, vNear)); }`;
+void main() { gl_FragColor = vec4(vec3(0.30, 0.62, 0.68), 0.04 * mix(0.3, 1.0, vNear)); }`;
 const WALK_VERT = /* glsl */ `
 attribute float aT;
 varying float vT;
@@ -111,7 +111,7 @@ void main() {
   if (vT > uHead) discard;
   float tail = smoothstep(uHead - 0.28, uHead, vT);
   float a = (0.10 + 0.9 * tail) * uFade;
-  gl_FragColor = vec4(vec3(0.45, 0.95, 1.0) * (0.6 + 1.6 * tail), a);
+  gl_FragColor = vec4(vec3(0.45, 0.95, 1.0) * (0.5 + 1.0 * tail), a * 0.85);
 }`;
 
 export async function loadCloud(): Promise<{ info: CloudInfo; pos: Float32Array; bucket: Float32Array }> {
@@ -235,7 +235,7 @@ export class CloudScene {
     this.lines = new THREE.LineSegments(new THREE.BufferGeometry(),
       new THREE.LineBasicMaterial({ color: 0x7fe9f0, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending }));
     this.group.add(this.lines);
-    this.needle = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 }));
+    this.needle = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
     this.group.add(this.needle);
     const tg = new THREE.BufferGeometry();
     tg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
@@ -271,7 +271,7 @@ export class CloudScene {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.75, 0.42, 0.62);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.38, 0.7);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -289,7 +289,7 @@ export class CloudScene {
     c.width = 512; c.height = 512;
     const x = c.getContext("2d")!;
     const g = x.createRadialGradient(330, 210, 10, 300, 260, 420);
-    g.addColorStop(0, "#16232a"); g.addColorStop(0.45, "#0e1518"); g.addColorStop(1, "#08090a");
+    g.addColorStop(0, "#121c21"); g.addColorStop(0.45, "#0c1214"); g.addColorStop(1, "#070809");
     x.fillStyle = g; x.fillRect(0, 0, 512, 512);
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
