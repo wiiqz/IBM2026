@@ -13,14 +13,12 @@ Team **Needlepoint**: Kartikeya Lathi (`KnigguKniggu-droid`), William Lu (`wiiqz
 - **Devpost**: https://devpost.com/software/needle-urq0l8 ("Project submitted!"), thumbnail + 8-image gallery + story.
 - **LinkedIn post**: https://www.linkedin.com/feed/update/urn:li:activity:7525818820209504256/ (tags William Lu, IBM;
   comment tags GL Bajaj Group of Institutions, Kunal Gola, Dhruv Chaturvedi, Daya Nand; comment with the video link).
-- **Video v1** (Claude.ai "Startup onboarding video" chat): https://youtu.be/OFGFV6zC5QE (public, new YouTube channel;
-  KaiClip and the Kartikeya Lathi channels are blocked). Backup download:
-  https://github.com/wiiqz/IBM2026/releases/tag/needle-demo-video-2026-11-10. Files: `video/out/final/`.
+- **Final video (Vox editorial cut, 2:46, 1080p30)**: https://youtu.be/OFGFV6zC5QE (public, new YouTube channel; KaiClip
+  and the Kartikeya Lathi channels are blocked). It is the link in Form A (resubmitted), Devpost, README,
+  submission.json, PR body and the LinkedIn comment. The first cut https://youtu.be/5ZcVFBsjYLE is unlisted.
+  Backup downloads: https://github.com/wiiqz/IBM2026/releases/tag/needle-demo-video-2026-11-10. Files: `video/out/final/`.
 
-## In progress
-- **Video v2, Vox editorial re-cut** rendering in the Claude.ai chat (30 fps, 2:46). When delivered: download, QC,
-  upload with `video/yt_upload_needle.py --token <scratchpad>/yt_token_new.json` (same channel), then swap the link in
-  Form A (Edit your response), Devpost, README, submission.json, PR body, PR folder, LinkedIn comment.
+## Nothing in progress (02:50 CST). Everything is submitted.
 
 ## Repo state
 - `wiiqz/IBM2026` is PUBLIC; `needle` = `main` = `29c5501` at 02:10 CST (video link, judge rounds 1-3, UI polish).
