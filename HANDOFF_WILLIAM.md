@@ -171,3 +171,69 @@ PRs, upload, or submit anything — ask me first. When the UI is done: capture t
 submission_copy/SCREENSHOTS.md into needle/docs/screenshots/, run ./make_submission.sh to a temp folder and the
 official validator on it, and report what changed with evidence.
 ```
+
+## 10. FULL UI PROMPT (self-contained — paste this one into William's Claude Code)
+
+```
+ROLE: You are the frontend lead for NEEDLE (IBM Db2Hack 2026, team Needlepoint). Repo: wiiqz/IBM2026, branch `needle`.
+Read HANDOFF_WILLIAM.md (sections 0-7), needle/README.md ("What we found", "Demo walkthrough", "Security"),
+needle/src/needle/app.py (current Streamlit UI + do_run), needle/CONTRACT.md (rules). Backend is DONE and verified
+(175 tests). Nothing is submitted. Deadline 05:30 CST Nov 10; UI done by ~02:30 CST.
+
+STEP 0 (first, before any UI work): get a database. Create your own Codespace on wiiqz/IBM2026 branch `needle`,
+run `cd needle && bash scripts/bootstrap_codespace.sh` (sample, ~5 min) or `--full` (26,210 advisories), then on
+the Mac: copy .env down and open the SSH tunnel exactly as the bootstrap prints. Install Ollama models
+nomic-embed-text and qwen3:4b-instruct-2507-q4_K_M (set LLM_MODEL in .env). Confirm `python -m needle.triage
+"yaml loader runs code from a config file" --k 5` returns rows before touching the UI.
+
+GOAL: a polished, fast, judge-ready UI for IBM Db2 engineers that tells this story in under a minute:
+(1) paste a vague advisory -> (2) one Db2 statement fuses keyword + vector search -> (3) row access control decides
+who sees what -> (4) which services are affected and since when -> (5) a verified memo. Plus a "Finding" view.
+
+TECH (choose and state it): RECOMMENDED = keep Python backend, add `needle/src/needle/api.py` (FastAPI, bound to
+127.0.0.1) wrapping app.do_run / llm_summary / verify, and build `needle/web/` (Vite + React + TypeScript + Tailwind,
+IBM Plex Sans, IBM Carbon-like palette: gray-10 layers, blue #0f62fe accent, square corners). FALLBACK if time is
+short = keep Streamlit and restyle app.py. Never move SQL into the frontend; never build SQL from user text.
+
+API (if you build it): POST /api/login {user,password} -> session token (memory only, server keeps the Db2
+credentials in process memory for the session; never written anywhere); POST /api/triage {query,k} ->
+do_run(...) result (ranked HYBRID/KW/VEC lists, depth choice, visible_docs, exposure rows, timings); POST /api/memo
+-> llm_summary + verify (kept text + removed sentences with reasons); GET /api/finding -> contents of
+eval/results/rcac_recall_vs_selectivity.json + rcac_correlated.json; GET /api/health (db + ollama status).
+Demo mode only with env NEEDLE_DEMO_SWITCHER=1: GET /api/demo-users -> [NDL_SENIOR, NDL_JUNIOR, NDL_P10] and login
+without password from server .env; show a visible "demo identity switcher - not authentication" badge.
+
+SCREENS:
+- Header: NEEDLE + one-line pitch; signed-in identity chip; Db2/Ollama health dots.
+- Triage (main): big query box with 2 sample prompts (PyYAML chat message; Pillow FlashPix "no CVE yet");
+  three ranking columns Keyword | Vector | Hybrid (rank, advisory id link to osv.dev, package, cross-rank badge);
+  router line "Search depth N chosen for your visibility (V of T advisories visible): approx via vector index | exact
+  scan"; collapsible "SQL" panel showing the CALL NEEDLE.TRIAGE_MODE statement with bound params; KPI row (services
+  affected now, longest exposure days, not confirmed, unknown coverage, previously affected); exposure table with
+  status pills AFFECTED (red) / NOT_CONFIRMED (gray) / UNKNOWN_COVERAGE (amber) / previously affected; "Synthetic
+  fleet" label; memo card with verified text + "removed by verifier" list; raw model output collapsed, labelled
+  "unverified".
+- Finding: plain-words explanation ("under row access control every user shares one plan; it sizes the vector
+  index's first batch as if each user sees about half the rows (estimate 0.495 -> 21 candidates); then the permission
+  drops what you can't see"), the recall-vs-visibility chart (re-plot from JSON or show the PNG), the router fix
+  numbers (held-out 1.000/1.000/1.000/0.988/0.987, 0 leaks), correlated case (10% user: 130/170 queries empty), and a
+  live "Compare identities" button: same query as NDL_SENIOR / NDL_JUNIOR / NDL_P10 side by side (rows returned,
+  router choice, embargoed advisory visible or not).
+- How it works: architecture diagram (from architecture.md mermaid), Db2 features list, link to README evidence.
+States: loading skeletons, "Sign-in failed", "Db2 unavailable", "Ollama unavailable", empty results.
+
+MUST KEEP: real Db2 sign-in by default; demo switcher only with NEEDLE_DEMO_SWITCHER=1; bind 127.0.0.1; passwords
+never stored/logged; wording AFFECTED/NOT_CONFIRMED/UNKNOWN_COVERAGE, never "safe"; NDL_JUNIOR never sees an
+embargoed advisory anywhere; every number on screen comes from the API or an evidence file (no hard-coded metrics).
+
+ACCEPTANCE (prove each with output/screenshots): `python -m pytest -q -m "not db"` passes (update tests for UI
+changes; add API tests); db tests pass when connected; as NDL_SENIOR the Pillow FlashPix prompt shows
+GHSA-5x8w-8jj5-q52h and affected services, as NDL_JUNIOR it is absent everywhere; as NDL_P10 the router line says
+exact scan and 10 of 10 rows; PyYAML prompt shows legacy-reporting AFFECTED; light theme, 1920x1080 and laptop
+widths, no clipped columns. Then: capture screenshots per submission_copy/SCREENSHOTS.md into needle/docs/screenshots/,
+update README "Running the Project" with the new run commands, add the frontend to requirements/package.json,
+run `./make_submission.sh /tmp/subcheck/needle` + the official validator, commit to branch `needle`, and report.
+The video pipeline (video/make_video.py, Playwright) drives the Streamlit UI today — if you replace the UI, update
+video/scenes.py selectors or tell Kartikeya so the video can be re-captured.
+DO NOT fork, open PRs, upload, or submit anything — ask first.
+```
