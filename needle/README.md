@@ -564,6 +564,12 @@ router is recall and row count, not speed. `NEEDLE.TRIAGE` under RCAC (NDL_SENIO
 - Screenshots (`docs/screenshots/`), web UI against the full corpus (26,210 advisories), light theme. Live checks
   behind them: [`docs/evidence/web_ui_acceptance.txt`](docs/evidence/web_ui_acceptance.txt).
 
+**0. Overview (the landing page).** Each point is one of the 26,183 public advisories, placed by its real embedding
+(PCA to 3D, `scripts/build_hero_cloud.py`; the 27 embargoed rows are left out of the public page). For the PyYAML
+question as a 10% analyst on the shared plan, the 21 nearest are fetched, the permission removes 19 (red) and 2 come
+back; switch to the NEEDLE router and 10 of 10 do. Drag to turn it.
+![Overview: the corpus as a point cloud, the question's neighbours, and what a 10% analyst gets back](docs/screenshots/00_overview_hero.png)
+
 **1. Triage as NDL_JUNIOR.** The PyYAML chat message (no CVE): one Db2 call ranks keyword, vector and hybrid; the
 verdict slab names legacy-reporting (pyyaml 5.1, AFFECTED since 2020-02-27) from the exact SBOM join. Keywords alone
 rank MS SWIFT first; hybrid puts the PyYAML advisories on top. The router line shows the depth chosen for this identity.

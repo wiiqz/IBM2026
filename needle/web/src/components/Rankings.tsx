@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fmt, MODES, type Doc, type Mode, type Ranked, type TriageResult } from "../api";
 import { Tag } from "./ui";
+import { lockScroll } from "../lib/scroll";
 
 const HEAD: Record<Mode, { title: string; how: string }> = {
   keyword: { title: "Keyword", how: "BM25 in plain SQL over NEEDLE.POSTING" },
@@ -88,12 +89,13 @@ function Drawer({ doc, onClose }: { doc: Doc; onClose: () => void }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
+    lockScroll(true);
+    return () => { window.removeEventListener("keydown", k); lockScroll(false); };
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label={doc.id}>
       <button className="absolute inset-0 bg-ink/25" aria-label="Close" onClick={onClose} />
-      <aside className="fade-in absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col overflow-y-auto border-l border-hair bg-paper p-6">
+      <aside data-lenis-prevent className="fade-in absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col overflow-y-auto border-l border-hair bg-paper p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="font-mono text-[15px] font-semibold break-all">{doc.id}</p>

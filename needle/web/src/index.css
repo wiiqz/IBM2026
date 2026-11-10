@@ -25,6 +25,7 @@
   --color-slab-mute: #9aa1a4;
   --color-slab-rule: #30373a;
 
+  --font-display: "Red Hat Display Variable", "Red Hat Display", "Red Hat Text Variable", ui-sans-serif, sans-serif;
   --font-sans: "Red Hat Text Variable", "Red Hat Text", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Red Hat Mono Variable", "Red Hat Mono", ui-monospace, "SF Mono", Menlo, monospace;
 

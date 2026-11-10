@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError, fmt, setToken, type Config, type Health, type Session } from "./api";
 import { Dot } from "./components/ui";
+import { initScroll, scrollTop } from "./lib/scroll";
 import SignIn from "./views/SignIn";
 import Triage, { useTriageState } from "./views/Triage";
 import FindingView from "./views/Finding";
 import HowItWorks from "./views/HowItWorks";
+import Landing from "./views/Landing";
 
-type View = "triage" | "finding" | "how";
+type View = "home" | "triage" | "finding" | "how";
 const VIEWS: { id: View; label: string }[] = [
+  { id: "home", label: "Overview" },
   { id: "triage", label: "Triage" },
   { id: "finding", label: "The finding" },
   { id: "how", label: "How it works" },
 ];
 const viewFromHash = (): View => {
   const h = window.location.hash.replace(/^#\/?/, "");
-  return (VIEWS.find((v) => v.id === h)?.id ?? "triage") as View;
+  return (VIEWS.find((v) => v.id === h)?.id ?? "home") as View;
 };
 
 function Mark() {
@@ -36,6 +39,9 @@ export default function App() {
   const [switching, setSwitching] = useState(false);
   const [switchErr, setSwitchErr] = useState<ApiError | null>(null);
   const triage = useTriageState();
+
+  useEffect(() => initScroll(), []);
+  useEffect(() => { scrollTop(); }, [view]);
 
   useEffect(() => {
     const on = () => setView(viewFromHash());
@@ -79,7 +85,7 @@ export default function App() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-hair bg-ground/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
-          <a href="#/triage" onClick={() => go("triage")} className="flex items-center gap-2.5 text-ink no-underline">
+          <a href="#/home" onClick={() => go("home")} className="flex items-center gap-2.5 text-ink no-underline">
             <Mark />
             <span className="hidden font-mono text-[15px] font-semibold tracking-[0.08em] sm:inline">NEEDLE</span>
           </a>
@@ -92,7 +98,7 @@ export default function App() {
               </a>
             ))}
           </nav>
-          <p className="hidden min-w-0 truncate text-xs text-mute xl:block">Permission-aware hybrid search for vulnerability triage, inside IBM Db2 12.1.5</p>
+          <p className={`hidden min-w-0 truncate text-xs text-mute ${view === "home" ? "" : "xl:block"}`}>Permission-aware hybrid search for vulnerability triage, inside IBM Db2 12.1.5</p>
           <div className="ml-auto flex shrink-0 items-center gap-5">
             <div className="flex items-center gap-2.5 md:gap-4">
               <Dot ok={healthErr ? false : health ? health.db.ok : null} label={`Db2 ${health?.db.database ?? ""}`.trim()}
@@ -131,7 +137,8 @@ export default function App() {
         )}
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-4 pt-6 pb-16 sm:px-6 lg:px-8">
+      {view === "home" && <Landing />}
+      <main className={view === "home" ? "hidden" : "mx-auto max-w-[1600px] px-4 pt-6 pb-16 sm:px-6 lg:px-8"}>
         {view === "triage" && (
           session
             ? <Triage key={session.user} session={session} state={triage} />

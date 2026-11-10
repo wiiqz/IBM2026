@@ -57,3 +57,19 @@ Real Db2 sign-in by default. The demo switcher appears only with `NEEDLE_DEMO_SW
 identity switcher — not authentication". Loopback only. Statuses are AFFECTED / NOT_CONFIRMED /
 UNKNOWN_COVERAGE, never "safe". The junior identity never sees an embargoed advisory. The router line stays
 visible. The synthetic fleet is labelled.
+
+## Landing page (a persuade surface, added after the owner asked for a hero and 3D)
+- **Message:** "Find the needle." The literal descriptor follows: what NEEDLE does inside Db2, in one sentence.
+- **Hero type:** a product-led dark stage (a lit void, radial gradient, no edges). The subject is the real
+  corpus: 26,183 public advisories as points, from nomic-embed-text vectors projected to 3D by PCA
+  (`scripts/build_hero_cloud.py`). Embargoed rows are excluded, so the public page cannot leak them.
+- **Signature move:** the finding, shown with the data. The question is a needle. Its exact nearest neighbours are
+  lit petrol. Under "10% analyst · shared plan" the 21-row first batch shows: rows the permission removes turn red,
+  the survivors stay lit, and the readout says "2 of 10". "NEEDLE router" lights the 10 nearest the analyst may
+  read. Every number on the stage comes from `cloud.json`.
+- **Motion:** one fade-in of the canvas (700 ms) and a slow idle turn. Drag turns it, 1:1 while held, with inertia
+  on release. Identity changes fade the points over about 0.7 s. Reduced motion: a still frame, no idle turn, no
+  fades, and no Lenis.
+- **Scroll:** Lenis 1.3.27, lerp 0.1 on wheel only, native on touch and under reduced motion; inner scrollers
+  carry `data-lenis-prevent`.
+- **Type:** Red Hat Display for the two display lines (same family as the UI text).

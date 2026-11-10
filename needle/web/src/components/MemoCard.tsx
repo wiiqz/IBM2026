@@ -67,7 +67,7 @@ export default function MemoCard({ result, mode, memo, setMemo }: {
                 <span className="mr-2 rounded-[3px] bg-amber-wash px-1.5 py-[1px] font-mono text-[11px] font-semibold text-amber">UNVERIFIED</span>
                 Raw model output
               </summary>
-              <pre className="max-h-72 overflow-auto border-t border-hair px-3 py-2 font-mono text-xs whitespace-pre-wrap text-mute">{memo.raw_unverified}</pre>
+              <pre data-lenis-prevent className="max-h-72 overflow-auto border-t border-hair px-3 py-2 font-mono text-xs whitespace-pre-wrap text-mute">{memo.raw_unverified}</pre>
             </details>
           </div>
         </div>

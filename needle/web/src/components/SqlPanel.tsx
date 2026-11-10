@@ -35,11 +35,11 @@ export default function SqlPanel({ result }: { result: TriageResult }) {
           <div className="p-4 sm:p-5">
             {tab === "call" && <Call result={result} />}
             {tab === "plan" && <Plans />}
-            {tab === "proc" && <pre className="code max-h-[520px]">{result.sql.procedure}</pre>}
+            {tab === "proc" && <pre data-lenis-prevent className="code max-h-[520px]">{result.sql.procedure}</pre>}
             {tab === "exposure" && (
               <div className="grid gap-3">
                 <p className="text-sm text-mute">Parameter values are the advisory ids ranked above, as visible to {result.user}. Each id is bound twice.</p>
-                <pre className="code max-h-[420px]">{result.sql.exposure}</pre>
+                <pre data-lenis-prevent className="code max-h-[420px]">{result.sql.exposure}</pre>
                 <pre className="code">{JSON.stringify({ params: result.sql.exposure_params }, null, 2)}</pre>
               </div>
             )}
