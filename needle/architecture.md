@@ -495,7 +495,7 @@ the application. The router compensates outside the engine.
 | Procedure runs with more privilege than the caller | The permission keys on `SESSION_USER` (the connected analyst), not the routine owner; leak tests call `TRIAGE` as each user |
 | Any browser visitor picks a privileged identity | Sign-in with own Db2 credentials by default; demo switcher only behind `NEEDLE_DEMO_SWITCHER=1`; server bound to 127.0.0.1 |
 | Results of one user shown to another | Results are tied to the user who ran them and hidden after a user change |
-| LLM invents IDs, statuses or "safe" claims | Verifier removes unknown IDs (also obfuscated forms), unknown packages or services, safety claims, status mismatches, URLs and commands |
+| LLM invents IDs, statuses, day counts or "safe" claims | Verifier removes unknown IDs (also obfuscated forms), unknown packages or services, safety claims, status mismatches, durations that differ from `DAYS_EXPOSED`, URLs and commands |
 | Oversized input | Query length and term-count caps; k and depth bounded |
 | Untrusted OSV / SBOM files | Parsed as JSON only; no URL fetch; no shell |
 | Committed secrets | `.env` ignored; the organizer validator rejects `.env` files; the submission copy script checks every password value |

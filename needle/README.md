@@ -637,8 +637,10 @@ period, 27 embargoed rows; then the visible rows per identity ([`docs/evidence/v
   (2) names a package or service that is not in the SQL results;
   (3) makes a negative or safety claim ("safe", "not affected", "no action needed", ...);
   (4) gives a service a status that differs from that service's SQL status, or names a service without a status;
-  (5) contains a URL, a shell or package-manager command, or a package-like token not in the evidence.
-  It checks identifiers and status words, not the full meaning of a sentence. The raw model output is still shown
+  (5) contains a URL, a shell or package-manager command, or a package-like token not in the evidence;
+  (6) states a duration ("over 900 days", "6 years") that does not match the SQL `DAYS_EXPOSED` of the services it
+  names. A qwen3:4b draft once said "over 900 days" for a 2,447-day exposure; rule 6 now removes that sentence.
+  It checks identifiers, status words and durations, not the full meaning of a sentence. The raw model output is still shown
   in a collapsed panel labelled "unverified".
 - **SQL.** In `src/needle/` and in `NEEDLE.TRIAGE_MODE` every value from a user or a query is a bound parameter;
   query terms enter as one bound JSON value. The only values written into SQL text are integers validated in code

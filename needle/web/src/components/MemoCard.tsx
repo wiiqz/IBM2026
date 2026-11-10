@@ -20,7 +20,7 @@ export default function MemoCard({ result, mode, memo, setMemo }: {
           <h2 className="text-lg font-semibold tracking-[-0.01em]">Triage memo</h2>
           <p className="mt-0.5 max-w-[80ch] text-sm text-mute">
             A local model (Ollama, through LangChain) drafts it from {result.user}'s top {mode} advisories and exposure rows.
-            The verifier then deletes any sentence whose IDs, services or status claims the SQL did not return.
+            The verifier then deletes any sentence whose IDs, services, status claims or day counts the SQL did not return.
           </p>
         </div>
         <button className="btn btn-primary" onClick={go} disabled={busy} data-testid="memo-btn">

@@ -20,7 +20,11 @@ A sentence is removed when:
             or it names a service without any status claim (cannot be grounded) (review H1);
 5. payload  it contains a URL, a shell or package-manager command, or a package-like token that is not in
             the evidence (pinned "name==1.2" or a typosquat of a known package such as "pyyaml-secure-loader")
-            (review M2).
+            (review M2);
+6. numbers  it states a duration ("2,448 days", "over 900 days", "6 years", "18 months") that does not match a
+            DAYS_EXPOSED value of the services it names (or of any exposure row when it names none). Days must
+            match within 1 day; weeks within 1 week; months and years within 1 unit. A memo once said "over 900
+            days" for a 2,448-day exposure; that sentence is now removed.
 """
 from __future__ import annotations
 
@@ -145,6 +149,20 @@ PINNED_RE = re.compile(r"\b([A-Za-z][A-Za-z0-9._-]*)\s*(?:==|>=|<=|~=|!=)\s*\d")
 VERSION_PART_RE = re.compile(r"^v?\d[\d.]*[a-z0-9]*$")
 TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*[A-Za-z0-9]|[A-Za-z0-9]")
 
+# --- durations (rule 6) --------------------------------------------------------------------------------------
+DURATION_RE = re.compile(
+    r"(?<![\w.,])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*\+?\s*-?\s*(days?|weeks?|months?|years?|yrs?)\b", re.I)
+
+
+def _duration_matches(n: float, unit_word: str, days: int) -> bool:
+    if unit_word.startswith("day"):
+        return abs(n - days) <= 1
+    if unit_word.startswith("week"):
+        return abs(n * 7 - days) <= 7
+    if unit_word.startswith("month"):
+        return abs(n - days / 30.44) < 1
+    return abs(n - days / 365.25) < 1  # years
+
 
 @dataclass
 class Evidence:
@@ -157,6 +175,8 @@ class Evidence:
     alias_ids: dict[str, set[str]] = field(default_factory=dict)  # id or alias (upper) -> retrieved ADV_IDs
     known_packages: set[str] = field(default_factory=set)
     known_services: set[str] = field(default_factory=set)  # display names and ids (lower case)
+    days: dict[str, set[int]] = field(default_factory=dict)  # service key -> DAYS_EXPOSED values
+    all_days: set[int] = field(default_factory=set)
     _svc_rx: list[tuple[str, re.Pattern]] = field(default_factory=list, repr=False)
     _pkg_rx: list[tuple[str, re.Pattern]] = field(default_factory=list, repr=False)
 
@@ -221,11 +241,19 @@ def build_evidence(advisories: Iterable[dict], exposure_rows: Iterable[dict],
         if pkg:
             ev.packages.add(pkg)
         status = r.get("STATUS") or ""
+        try:
+            days = int(r["DAYS_EXPOSED"]) if r.get("DAYS_EXPOSED") is not None else None
+        except (TypeError, ValueError):
+            days = None
+        if days is not None:
+            ev.all_days.add(days)
         for key in ("SERVICE", "SERVICE_ID"):
             if r.get(key):
                 names.add(str(r[key]).lower())
                 sk = name_key(str(r[key]))
                 ev.services.setdefault(sk, set()).add(status)
+                if days is not None:
+                    ev.days.setdefault(sk, set()).add(days)
                 if rid:
                     ev.rel.setdefault((sk, rid), set()).add(status)
                 if pkg:
@@ -308,6 +336,16 @@ def check_unit(unit: str, ev: Evidence) -> list[str]:
             if not _supports(claim, rel):
                 reasons.append(f"says {s.lower()} is {CLAIM_WORD[claim]} via {p} but the SQL row for that pair "
                                f"is {_fmt(rel) if rel else 'absent'}")
+
+    # 6. durations must match the SQL day counts
+    named = {name_key(s) for _, _, s in svc_hits if name_key(s) in ev.days}
+    allowed = set().union(*(ev.days[k] for k in named)) if named else ev.all_days
+    for m in DURATION_RE.finditer(unit):
+        n = float(m.group(1).replace(",", ""))
+        unit_word = m.group(2).lower()
+        if not any(_duration_matches(n, unit_word, d) for d in allowed):
+            reasons.append(f"states {m.group(0).strip()} but the SQL day count is "
+                           + (", ".join(f"{d:,} days" for d in sorted(allowed)) if allowed else "absent"))
 
     # 5. payloads from untrusted advisory text
     if URL_RE.search(unit):

@@ -220,6 +220,32 @@ def test_m2_payloads_from_untrusted_text_are_removed(sentence, reason):
     assert any(reason in r for x in res.removed for r in x.reasons), res.removed
 
 
+@pytest.mark.parametrize("sentence", [
+    "legacy-reporting has been AFFECTED for over 900 days.",   # real qwen3:4b draft; the SQL row says 2,447
+    "legacy-reporting has been AFFECTED for 2,000 days.",
+    "legacy-reporting has been AFFECTED for 3 years.",
+    "The longest exposure is 120 days.",                        # no service named: checked against every row
+    "Patch within 30 days.",                                    # a deadline the SQL results do not contain
+])
+def test_rule6_wrong_durations_are_removed(sentence):
+    res = verify_memo("- " + sentence, ev())
+    assert res.removed_count == 1, res.removed
+    assert any("SQL day count" in r for x in res.removed for r in x.reasons)
+
+
+@pytest.mark.parametrize("sentence", [
+    "legacy-reporting has been AFFECTED for 2,447 days.",
+    "legacy-reporting has been AFFECTED for 2447 days [GHSA-8q59-q68h-6hv4].",
+    "legacy-reporting has been AFFECTED for 2,448 days.",       # one day of clock skew is tolerated
+    "legacy-reporting has been AFFECTED for over 6 years.",
+    "legacy-reporting has been AFFECTED for about 80 months.",
+    "legacy-reporting runs pyyaml 5.1 and is AFFECTED since 2020-02-27.",  # versions and dates are not durations
+])
+def test_rule6_matching_durations_are_kept(sentence):
+    res = verify_memo("- " + sentence, ev())
+    assert res.removed == [], res.removed
+
+
 def test_m2_does_not_flag_versions_or_module_paths():
     memo = "- PyYAML-5.3 and pyyaml==5.1 are listed; yaml.full_load in yaml.constructor is the sink."
     assert verify_memo(memo, rev()).removed == []
