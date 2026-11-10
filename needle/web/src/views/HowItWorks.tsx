@@ -140,7 +140,7 @@ function Measured() {
     ...(st.tests ? [{ what: "Tests", how: "unit, API and live-Db2 leak tests", value: <><b>{st.tests.passed}</b> passed, {st.tests.skipped} skipped</>, file: st.tests.file }] : []),
   ];
   return (
-    <section aria-labelledby="measured-title">
+    <section aria-labelledby="measured-title" className="min-w-0">
       <h2 id="measured-title" className="mb-3 text-xl font-semibold tracking-[-0.01em]">Measured</h2>
       <div className="panel overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
