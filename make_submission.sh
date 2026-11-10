@@ -13,7 +13,7 @@ rsync -a \
   --exclude 'docs/evidence/review_claude.md' --exclude 'docs/evidence/review_codex.md' \
   --exclude '.env' --exclude '.env.*' --exclude '*.secret.env' \
   --exclude '.venv/' --exclude 'data/' --exclude '__pycache__/' --exclude '.pytest_cache/' \
-  --exclude 'web/node_modules/' --exclude 'web/dist/' \
+  --exclude 'web/node_modules/' --exclude 'web/dist/' --exclude '*.tsbuildinfo' \
   "$SRC/" "$TARGET/"
 cp "$SRC/.env.example" "$TARGET/.env.example"
 

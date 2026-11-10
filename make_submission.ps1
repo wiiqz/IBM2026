@@ -7,7 +7,7 @@ $src = Join-Path $PSScriptRoot 'needle'
 
 # Never copied (relative to needle/): internal plan, agent contract, internal reviews, secrets, data, caches.
 $excludeFiles = @('CONTRACT.md', 'docs\PLAN.md', 'docs\evidence\review_claude.md', 'docs\evidence\review_codex.md',
-                  '.env', 'pytest.ini.bak')
+                  '.env', 'pytest.ini.bak', 'web\tsconfig.tsbuildinfo')
 $excludeDirs  = @('.venv', 'data', '__pycache__', '.pytest_cache', '.streamlit\secrets', 'web\node_modules', 'web\dist')
 
 if (Test-Path $Target) { throw "Target exists: $Target (remove it first; this script never overwrites)" }
