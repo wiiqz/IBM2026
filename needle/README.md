@@ -572,10 +572,12 @@ back; switch to the NEEDLE router and 10 of 10 do. Drag to turn it.
 
 **1. Triage as NDL_JUNIOR.** The PyYAML chat message (no CVE): one Db2 call ranks keyword, vector and hybrid; the
 verdict slab names legacy-reporting (pyyaml 5.1, AFFECTED since 2020-02-27) from the exact SBOM join. Keywords alone
-rank MS SWIFT first; hybrid puts the PyYAML advisories on top. The router line shows the depth chosen for this identity.
+rank MS SWIFT first; hybrid puts the PyYAML advisories on top, and the rank-flow chart shows how the fusion reorders
+them. The router line shows the depth chosen for this identity.
 ![Triage: verdict slab, router line, keyword / vector / hybrid columns](docs/screenshots/01_triage_ranking.png)
 
-**2. Services and the verified memo.** Exposure grouped by service with the advisories behind each status; the memo
+**2. Services and the verified memo.** An exposure timeline from the temporal SBOM history (AFFECTED since 2020-02-27,
+and the windows that ended), exposure grouped by service with the advisories behind each status; the memo
 from the local model (qwen3:4b via LangChain) after the verifier.
 ![Affected services and the verified memo](docs/screenshots/02_exposure_memo.png)
 
