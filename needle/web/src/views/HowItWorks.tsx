@@ -8,7 +8,7 @@ const LOCAL = [
   { name: "Ollama", where: "localhost:11434", says: "nomic-embed-text turns the query into 768 floats. A small local model drafts the memo." },
 ];
 const DB2 = [
-  { name: "Vector leg", sql: "ORDER BY VECTOR_DISTANCE(EMB, ?, COSINE)\nFETCH APPROX FIRST depth ROWS ONLY", says: "IXSCAN on the DiskANN index NEEDLE.ADV_DOC_VIX." },
+  { name: "Vector leg", sql: "ORDER BY VECTOR_DISTANCE(EMB, ?, COSINE)\nFETCH APPROX FIRST depth ROWS ONLY", says: "Depth up to 50: IXSCAN on NEEDLE.ADV_DOC_VIX. Depth 128: exact table scan." },
   { name: "Keyword leg", sql: "NEEDLE.BM25_SEARCH(?)", says: "BM25 written in plain SQL over NEEDLE.POSTING, one LATERAL lookup per term." },
   { name: "Fusion", sql: "RANK() per leg, FULL OUTER JOIN\nRRF = Σ 1 / (60 + rank)", says: "Reciprocal rank fusion in the same statement." },
   { name: "Exposure", sql: "SBOM_COMPONENT FOR BUSINESS_TIME\nAS OF CURRENT DATE", says: "A second statement, under the same permissions: exact package and version join, plus the deploy history for \"since when\"." },
@@ -125,9 +125,9 @@ function Measured() {
   if (!st) return null;
   const r = st.recall10, l = st.latency_ms, run = st.eval_run;
   const rows: { what: string; value: ReactNode; how: string; file: string }[] = [
-    { what: "Recall@10 on paraphrased questions", how: `${run.per_slice} synthetic chat-style rewrites sharing no 6-word run with the advisory`,
+    { what: "Hit@10 on paraphrased questions", how: `${run.per_slice} synthetic chat-style rewrites sharing no 6-word run with the advisory`,
       value: <>hybrid <b>{fmt.dec(r.paraphrase.triage)}</b> · vector {fmt.dec(r.paraphrase.approx)} · keyword {fmt.dec(r.paraphrase.bm25)}</>, file: run.file },
-    { what: "Recall@10 on text copied from the advisory", how: `${run.per_slice} named and ${run.per_slice} masked questions: upper bounds, not the headline`,
+    { what: "Hit@10 on text copied from the advisory", how: `${run.per_slice} named and ${run.per_slice} masked questions: upper bounds, not the headline`,
       value: <>named <b>{fmt.dec(r.named.triage)}</b> · masked <b>{fmt.dec(r.masked.triage)}</b></>, file: run.file },
     { what: "One TRIAGE call (keyword + vector + fusion)", how: `p50 / p95 over ${run.queries} questions, as ${run.session_user}, row access control on`,
       value: <><b>{ms1(l.triage_p50)}</b> / {ms1(l.triage_p95)}</>, file: run.file },

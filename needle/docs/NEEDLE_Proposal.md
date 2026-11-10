@@ -2,9 +2,9 @@
 title: NEEDLE
 subtitle: — permission-aware hybrid retrieval in IBM Db2 (vulnerability triage)
 eyebrow: IBM Db2Hack 2026 · Round 1 project proposal
-team: Team NEEDLE
+team: Team Needlepoint
 date: 9 November 2026
-footer: NEEDLE · Team NEEDLE · Measured values: docs/evidence/g1_vector_index.md
+footer: NEEDLE · Team Needlepoint · Measured values: docs/evidence/g1_vector_index.md
 ---
 
 > NEEDLE takes a vague security advisory and finds the services that it affects. One Db2 procedure fuses keyword and vector ranking. Db2 row permissions hide embargoed advisories from users without clearance.

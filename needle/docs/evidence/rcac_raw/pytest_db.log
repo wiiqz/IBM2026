@@ -1,6 +1,6 @@
 ============================= test session starts =============================
-platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\ganes\IBM26\needle\.venv\Scripts\python.exe
-rootdir: C:\Users\ganes\IBM26\needle
+platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0 -- <repo>/needle\.venv\Scripts\python.exe
+rootdir: <repo>/needle
 configfile: pytest.ini
 plugins: anyio-4.16.0, langsmith-0.14.17
 collecting ... collected 34 items / 10 deselected / 24 selected

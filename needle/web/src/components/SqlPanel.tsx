@@ -59,7 +59,7 @@ function Call({ result }: { result: TriageResult }) {
         <pre className="code">{result.sql.call}</pre>
         <p className="text-sm text-mute">
           Every value is a bound parameter. The query text never becomes SQL: it becomes a vector and a list of terms.
-          Only the integer depth is written as a literal, because <code className="font-mono text-[13px] text-ink-2">FETCH APPROX FIRST ? ROWS</code> never uses the vector index (see Access plan).
+          Only the integer depth is written as a literal, because <code className="font-mono text-[13px] text-ink-2">FETCH APPROX FIRST ? ROWS</code> did not use the vector index on Db2 12.1.5 (see Access plan).
         </p>
       </div>
       <dl className="grid content-start gap-y-2 text-sm">

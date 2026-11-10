@@ -5,7 +5,7 @@
 
 Path, in order:
 1. needle.triage.call_triage (bm25 agent) -> CALL NEEDLE.TRIAGE_MODE(..., 'HYBRID'), on an ibm_db_dbi wrapper of the same handle.
-2. ``CALL NEEDLE.TRIAGE(P_QVEC, P_QTERMS, P_K, P_DEPTH)`` per CONTRACT.md (fusion inside Db2).
+2. ``CALL NEEDLE.TRIAGE(P_QVEC, P_QTERMS, P_K, P_DEPTH)`` (fusion inside Db2; signature in sql/03_triage_proc.sql).
 3. NEEDLE.TRIAGE is a required object (installed by setup). If it is missing (SQL0440N/SQL0204N) the run stops
    with Db2Unavailable and a clear message; there is no direct-SQL fallback (analysts have EXECUTE on the
    procedures but no SELECT on NEEDLE.TERM_DF / NEEDLE.CORPUS_STATS since the C1 fix).

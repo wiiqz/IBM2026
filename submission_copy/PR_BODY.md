@@ -1,19 +1,3 @@
-<!--
-PRE-FLIGHT (do not paste this comment block; paste from the title line below)
-
-Placeholders to replace: [TEAM NAMES], [VIDEO_URL], [PR_URL], [REPO_URL], [EMAIL].
-
-Tick a checklist box only when its condition is true at submit time:
-- Box 3 (Complete Documentation): README.md still has "TODO(final)" markers (demo GIF, verify_db2.txt, Results
-  tables, screenshots, team name, corpus-statistics choice). Run:  grep -n "TODO\|PENDING" README.md architecture.md
-  and expect no output.
-- Box 4 (Metadata File): submission.json has "name": "TODO" and empty video_url / repo_url. Fill them, then run
-  python -c "import json;json.load(open('submission.json'))"
-- Box 6 (Tested Setup): README cites docs/evidence/clean_host_run.md, but that file does not exist yet.
-- Steps-to-verify block 5 (vector query with a subquery vector): the committed proof uses literal and bound
-  vectors (g1_vector_index.md). The plan for the subquery shape below is UNKNOWN until verify_db2.txt is captured.
--->
-
 [Submission] needle: NEEDLE — permission-aware hybrid retrieval in Db2
 
 # IBM Db2 TechX Summit 2026 — Project Submission
@@ -31,22 +15,20 @@ Tick a checklist box only when its condition is true at submit time:
 
 ## 2. Team Information
 
-- **Team Name:** NEEDLE
+- **Team Name:** Needlepoint
 - **Team Members:**
 
 | Full Name | GitHub Username | Email / Role |
 |---|---|---|
-| [TEAM NAMES] | @KnigguKniggu-droid | [EMAIL] / Db2 retrieval, RCAC and evaluation |
-| — | — | — |
-| — | — | — |
-| — | — | — |
+| Kartikeya | @KnigguKniggu-droid | Db2 schema, retrieval SQL, RCAC research, evaluation |
+| William | @wiiqz | Web UI, demo and presentation |
 
 ---
 
 ## 3. IBM Db2 Integration Summary
 
 - **IBM Db2 Edition / Environment:** Db2 Community Edition 12.1.5.0 in Docker (`icr.io/db2_community/db2:12.1.5.0`), database `VECDB` with 32K pages, built and measured in a GitHub Codespace (Linux x86-64).
-- **How IBM Db2 is Used in the Solution:** Db2 does all of the retrieval, permission and impact work. `NEEDLE.TRIAGE` (SQL PL) runs a BM25 keyword leg in plain SQL and a `FETCH APPROX FIRST <literal> ROWS ONLY` vector leg on the DiskANN index `NEEDLE.ADV_DOC_VIX`, and fuses both ranks with RRF (`RANK() OVER`, `FULL OUTER JOIN`) in one statement. A row permission (`CREATE PERMISSION NEEDLE.ADV_DOC_ROWS`, looked up by `SESSION_USER` in `NEEDLE.USER_ACCESS`) applies to both legs, and each analyst connects as their own Db2 user, so the app never filters rows itself. An exact join of package versions against OSV affected versions gives AFFECTED / NOT_CONFIRMED / UNKNOWN_COVERAGE per service, and an application-period temporal table (`PERIOD BUSINESS_TIME`) gives "exposed since" per service. We used `EXPLAIN`, `db2exfmt`, `MON_GET_PKG_CACHE_STMT` and `EXPLAIN_FROM_SECTION` to prove which access path Db2 chose for each user.
+- **How IBM Db2 is Used in the Solution:** Db2 does all of the retrieval, permission and impact work. `NEEDLE.TRIAGE` (SQL PL) runs a BM25 keyword leg in plain SQL and a `FETCH APPROX FIRST <literal> ROWS ONLY` vector leg on the DiskANN index `NEEDLE.ADV_DOC_VIX`, and fuses both ranks with RRF (`RANK() OVER`, `FULL OUTER JOIN`) in one statement. A row permission (`CREATE PERMISSION NEEDLE.ADV_DOC_ROWS`, looked up by `SESSION_USER` in `NEEDLE.USER_ACCESS`) applies to both legs, and each analyst connects as their own Db2 user, so the app never filters rows itself. An exact join of package versions against OSV affected versions gives AFFECTED / NOT_CONFIRMED / UNKNOWN_COVERAGE / PREVIOUSLY_AFFECTED per service, and an application-period temporal table (`PERIOD BUSINESS_TIME`) gives "exposed since" per service. We used `EXPLAIN`, `db2exfmt`, `MON_GET_PKG_CACHE_STMT` and `EXPLAIN_FROM_SECTION` to prove which access path Db2 chose for each user.
 - **Db2 Connector / Driver / Framework Integration Used:** `ibm_db` 3.3.0 with parameter markers for every value (only validated integers k and depth are written as literals, because `FETCH APPROX FIRST ? ROWS` does not use the vector index). A LangChain `BaseRetriever` (`Db2HybridRetriever`) and a Haystack component (`NeedleTriageComponent`) wrap the SQL PL procedure. `langchain-db2` 1.0.0 (`DB2VS`) is used as a measured baseline.
 - **Schema & Data Stored / Processed:** Schema `NEEDLE` (full DDL in `architecture.md`). `ADV_RAW` holds 26,842 raw OSV PyPI records (CLOB + SHA-256). `ADV_DOC` holds 26,210 searchable non-withdrawn advisories with `EMB VECTOR(768, FLOAT32) NOT NULL` (nomic-embed-text) and the RCAC columns `ROW_BUCKET` and `EMBARGO_UNTIL`. `ADV_ALIAS` and `ADV_AFFECTED` hold the alias graph and enumerated affected versions. `POSTING`, `TERM_DF` and `CORPUS_STATS` hold the BM25 index (1,944,102 postings). `USER_ACCESS` holds per-user visibility. `SERVICE` and `SBOM_COMPONENT` hold a synthetic service fleet with `PERIOD BUSINESS_TIME` deploy history. The fleet, the embargo flags and one prompt-injection test advisory are synthetic and labelled.
 - **Steps to Verify Db2 Integration:**
@@ -86,13 +68,22 @@ SELECT * FROM TABLE(NEEDLE.BM25_SEARCH('["pyyaml","full_load"]', 10)) AS T ORDER
 CALL NEEDLE.TRIAGE_MODE(NULL, '["pyyaml","full_load"]', 10, 50, 'KW');
 ```
 
-5. A vector search with a literal k:
-```sql
-SELECT D.ADV_ID, VECTOR_DISTANCE(D.EMB, Q.EMB, COSINE) AS DIST
-FROM NEEDLE.ADV_DOC D, (SELECT EMB FROM NEEDLE.ADV_DOC WHERE ADV_ID = 'GHSA-6757-jp84-gxfx') AS Q
-ORDER BY DIST FETCH APPROX FIRST 10 ROWS ONLY;
+5. The vector index is used for `FETCH APPROX` with a literal k, and not with a parameter marker (from the `db2inst1` shell):
+```bash
+db2 connect to VECDB
+db2 "EXPLAIN PLAN FOR SELECT ADV_ID FROM NEEDLE.ADV_DOC
+     ORDER BY VECTOR_DISTANCE(EMB, VECTOR(CAST(? AS CLOB(100K)), 768, FLOAT32), COSINE)
+     FETCH APPROX FIRST 10 ROWS ONLY"
+db2exfmt -d VECDB -1 -o approx10.exfmt
+grep -n "IXSCAN\|VECIDX" approx10.exfmt          # expect IXSCAN over VECIDX: NEEDLE.ADV_DOC_VIX
+
+db2 "EXPLAIN PLAN FOR SELECT ADV_ID FROM NEEDLE.ADV_DOC
+     ORDER BY VECTOR_DISTANCE(EMB, VECTOR(CAST(? AS CLOB(100K)), 768, FLOAT32), COSINE)
+     FETCH APPROX FIRST ? ROWS ONLY"
+db2exfmt -d VECDB -1 -o approx_param.exfmt
+grep -n "IXSCAN\|VECIDX\|TBSCAN" approx_param.exfmt   # expect TBSCAN on ADV_DOC, no VECIDX
 ```
-Committed access plans: `docs/evidence/g1_vector_index.md` shows `IXSCAN` on `VECIDX: NEEDLE.ADV_DOC_VIX` for `FETCH APPROX FIRST 10` and a table scan for `FETCH APPROX FIRST ? ROWS`.
+Needs the full corpus (at about 2,000 rows a table scan is cheaper). Our plans: `docs/evidence/g1_vector_index.md` (before RCAC), `docs/evidence/rcac_raw/section_forward_0.txt` (after RCAC: the section the analyst users actually ran, formatted with `EXPLAIN_FROM_SECTION`; the permission filter sits on the FETCH above the vector IXSCAN, est. 21 rows).
 
 6. Row permissions at work (connect as each analyst; the CLP prompts for the password you set in `.env`):
 ```sql
@@ -115,17 +106,17 @@ WHERE PACKAGE = 'pyyaml' ORDER BY SERVICE_ID;
 python -m pytest -q -m "not db" tests
 python -m pytest -q -m db tests/test_rcac.py tests/test_triage_rcac.py
 ```
-Our last run of the RCAC files: 35 passed (`docs/evidence/rcac_raw/pytest_all_after_demo_embargo.log`).
+Our logged run of the `-m db` command: 24 passed, 10 deselected (`docs/evidence/rcac_raw/pytest_db.log`).
 
 ---
 
 ## 4. Technology Stack & AI / LLM Usage
 
-- **Programming Languages:** Python (3.11+, built with 3.13), SQL, SQL PL.
+- **Programming Languages:** Python (3.12+, built with 3.13), SQL, SQL PL, TypeScript.
 - **Frameworks & Libraries:** `ibm_db` 3.3.0, LangChain (`langchain-core`, `langchain-ollama`, `langchain-db2` as baseline), Haystack (component wrapper), FastAPI + React/Vite/TypeScript/Tailwind (web UI), Streamlit, pytest, `rank-bm25` (parity reference), matplotlib, Docker Compose, GitHub Codespaces.
-- **AI / LLM Framework (if applicable):** LangChain (primary: `Db2HybridRetriever`, `ChatOllama`); Haystack (`NeedleTriageComponent` in a Haystack `Pipeline`).
-- **Model Provider & Model Name (if applicable):** Ollama, local: `nomic-embed-text` (768-dim embeddings) and `qwen3:14b` (cited summary). No cloud key is needed.
-- **Where AI/LLM is Applied in the Workflow:** The embedding model turns the query into a vector for the Db2 vector leg. After Db2 returns the fused advisories and the exact SBOM join, `qwen3:14b` writes a short cited memo. A verifier then removes any sentence whose advisory, package or service ID is not in the SQL results, and any safety claim, URL or install command. The model never decides which advisory matches, which service is affected, or who may see what; Db2 decides all three.
+- **AI / LLM Framework (if applicable):** LangChain (primary: `Db2HybridRetriever`, `ChatOllama`); Haystack (`NeedleTriageComponent` in a Haystack `Pipeline`). `Db2HybridRetriever` is a LangChain `BaseRetriever`; the Haystack `NeedleTriageComponent` runs in a `Pipeline`; Db2 decides what matches, what is affected and who may see it; the model only explains.
+- **Model Provider & Model Name (if applicable):** Ollama, local: `nomic-embed-text` (768-dim embeddings) and `qwen3:14b` for the cited summary (evidence runs; set by `LLM_MODEL`, the screenshots used `qwen3:4b-instruct`). No cloud key is needed.
+- **Where AI/LLM is Applied in the Workflow:** The embedding model turns the query into a vector for the Db2 vector leg. After Db2 returns the fused advisories and the exact SBOM join, the local model (`qwen3:14b` in the evidence runs) writes a short cited memo. A verifier then removes any sentence whose advisory, package or service ID is not in the SQL results, and any safety claim, URL or install command. The model never decides which advisory matches, which service is affected, or who may see what; Db2 decides all three.
 
 ---
 
@@ -144,8 +135,8 @@ Please verify and check every item before requesting review:
 
 - [x] **Folder Structure:** My submission is placed in a single new directory under `submissions/<project-slug>/` copied from `submissions/_template/`.
 - [x] **Naming Conventions:** The `<project-slug>` uses lowercase letters, numbers, and hyphens only, matching the branch name and PR title.
-- [x] **Complete Documentation:** Both `submissions/<project-slug>/README.md` and `submissions/<project-slug>/architecture.md` are completely filled out without unfilled placeholder markers.
-- [x] **Metadata File:** `submissions/<project-slug>/submission.json` is completed and valid JSON.
+- [ ] **Complete Documentation:** Both `submissions/<project-slug>/README.md` and `submissions/<project-slug>/architecture.md` are completely filled out without unfilled placeholder markers. <!-- tick after video_url is filled -->
+- [ ] **Metadata File:** `submissions/<project-slug>/submission.json` is completed and valid JSON. <!-- tick after video_url is filled -->
 - [x] **No Secrets or Credentials:** No API keys, passwords, private tokens, or connection strings with real credentials are committed. `.env.example` contains placeholders only.
 - [x] **Tested Setup Instructions:** Setup and run instructions were tested from a fresh environment and can be reproduced by reviewers.
 - [x] **License Declared:** Open-source license or distribution terms are specified.
@@ -163,26 +154,26 @@ NEEDLE is a triage tool, and the part we are proudest of is a measurement: what 
 - With row permissions active, `FETCH APPROX FIRST 10` still uses the vector index, and all users share one plan: after `FLUSH PACKAGE CACHE DYNAMIC`, five users left exactly one package-cache entry (one executable id), in both user orders.
 - That plan sizes the vector index scan with one compile-time filter factor (0.495) for every user, so the index hands 21 candidates (10 / 0.495) to the permission check. Section actuals confirm exactly 21 rows out of the vector index in all 9 captured activities.
 - A user who sees 10% of the rows therefore got 2.05 rows on average instead of 10 (recall@10 0.205), and 36 of 170 queries returned zero rows. A user who sees 25% got 5.08 rows (recall 0.502). This is how a shared plan behaves, not a defect: with the same permission written as a literal on a copy, the estimate moved to the true selectivity and recall at 10% rose from 0.205 to 0.765.
-- A per-user router (fitted on 81 dev queries, reported on 89 held-out queries only) restored recall@10 to 1.000 / 1.000 / 1.000 / 0.988 / 0.987 at 10 / 25 / 50 / 75 / 100% visibility, with 10 of 10 rows for every query and 0 permission leaks. Plain `APPROX 10` on the same held-out queries gave 0.208 / 0.506 / 0.852 / 0.947 / 0.948.
+- A per-user router (fitted on 81 dev queries, reported on 89 held-out queries only) restored recall@10 to 1.000 / 1.000 / 1.000 / 0.988 / 0.987 at 10 / 25 / 50 / 75 / 100% visibility (10-50 %: exact scans chosen by the router; 75-100 %: the vector index with search-list size 150), with 10 of 10 rows for every query and 0 permission leaks. Plain `APPROX 10` on the same held-out queries gave 0.208 / 0.506 / 0.852 / 0.947 / 0.948.
 - Oracle check: for every user and all 170 queries, the user's own `FETCH EXACT` top-10 equals the admin's exact top-10 with the permission written as an explicit `WHERE` (170/170).
 - Without permissions, `FETCH APPROX FIRST 10` ran in 4.8 ms median vs 72.3 ms for `FETCH EXACT`, with top-10 overlap 0.995 (`docs/evidence/g1_vector_index.md`).
 
 **Retrieval quality (canonical run `20261110T024304Z`, signed in as NDL_SENIOR with row access control active, k = 10, n = 150 per slice; `docs/evidence/eval_final.md`)**
 
-The paraphrase slice is the realistic case: synthetic chat-style rewrites that share no 6-word run with the source advisory. There, hybrid TRIAGE reaches recall@10 0.453, against 0.360 for vector APPROX and 0.340 for BM25 alone. The named and masked slices are text copied from a correct advisory, so they are upper bounds.
+The paraphrase slice is the realistic case: synthetic chat-style rewrites that share no 6-word run with the source advisory. There, hybrid TRIAGE reaches hit@10 0.453 (share of queries with a correct advisory in the top 10), against 0.360 for vector APPROX and 0.340 for BM25 alone. The named and masked slices are text copied from a correct advisory, so they are upper bounds.
 
-| Retriever | paraphrase R@10 | paraphrase MRR@10 | named R@10 | masked R@10 | p50 ms (per slice) |
+| Retriever | paraphrase hit@10 | paraphrase MRR@10 | named hit@10 | masked hit@10 | p50 ms (per slice) |
 |---|---|---|---|---|---|
 | Hybrid `NEEDLE.TRIAGE` (router depth) | **0.453** | 0.295 | 0.993 | 1.000 | 36.8–90.3 |
 | Vector APPROX (`FETCH APPROX FIRST 10`) | 0.360 | 0.225 | 0.993 | 0.993 | 2.7–3.0 |
 | Vector EXACT | 0.367 | 0.230 | 0.993 | 1.000 | 72.9–73.3 |
 | BM25 only (plain SQL) | 0.340 | 0.241 | 0.993 | 1.000 | 29.9–74.5 |
 
-Pooled over all 450 queries, p50 is 53.5 ms for hybrid TRIAGE and 43.4 ms for BM25 alone (Db2 time inside the Codespace, query embedding excluded). APPROX and EXACT top-10 lists overlapped 0.97 on average. The quality gate (hybrid named recall@10 at least 0.8) passed at 0.993, with 0 errors in 450 queries.
+Pooled over all 450 queries, p50 is 53.5 ms for hybrid TRIAGE and 43.4 ms for BM25 alone (Db2 time inside the Codespace, query embedding excluded). APPROX and EXACT top-10 lists overlapped 0.97 on average. The quality gate (hybrid named hit@10 at least 0.8) passed at 0.993, with 0 errors in 450 queries.
 
 **Keyword leg under the row permission (fixed).** After we activated row access control on `POSTING`, Db2 scanned all 1.94 million posting-index entries for every query instead of probing the query terms. A per-term `LATERAL` rewrite of `NEEDLE.BM25_SEARCH` (no DDL) restored the per-term index probe: on 30 queries as NDL_SENIOR, BM25 p50 fell from 244.8 to 27.2 ms and TRIAGE from 256.4 to 34.4 ms, with identical top-10 results, and 60 tests passed (`docs/evidence/rcac_posting_overhead.md`).
 
-**Security work.** An independent review of our own code found that the global BM25 statistics (`TERM_DF`, `CORPUS_STATS`) let an analyst subtract visible document frequencies from global ones and reconstruct the vocabulary of embargoed advisories, including their IDs. We now compute those statistics over public rows only, revoked SELECT on both tables from every analyst, and added a regression test for the difference attack (`docs/evidence/fix_c1_h2.txt`). The same review led to a stronger memo verifier (48 verifier tests, including Unicode-dash and fullwidth ID bypasses; `docs/evidence/fix_h1.txt`) and to a sign-in with each user's own Db2 credentials instead of a user picker.
+**Security work.** An AI-assisted code review (Claude and Codex) of our own code found that the global BM25 statistics (`TERM_DF`, `CORPUS_STATS`) let an analyst subtract visible document frequencies from global ones and reconstruct the vocabulary of embargoed advisories, including their IDs. We now compute those statistics over public rows only, revoked SELECT on both tables from every analyst, and added a regression test for the difference attack (`docs/evidence/fix_c1_h2.txt`). The same review led to a stronger memo verifier (48 verifier tests, including Unicode-dash and fullwidth ID bypasses; `docs/evidence/fix_h1.txt`) and to a sign-in with each user's own Db2 credentials instead of a user picker.
 
 **Notes we wrote along the way.** `docs/CONNECTOR_NOTES.md` lists seven Db2 behaviours we observed while building on the vector features (for example, `FETCH APPROX FIRST ? ROWS` does not use the vector index, and a nullable vector column leads to exact search unless the query adds `IS NOT NULL`), each with a repro script and a suggested one-line change.
 

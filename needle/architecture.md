@@ -49,7 +49,7 @@ graph TD
     F -->|"ADV_ID, RRF, KW_RANK, VEC_RANK, VEC_DIST"| R
     R -->|"ADV_DOC rows readable on the same connection"| X
     X -->|"AFFECTED / PREVIOUSLY_AFFECTED / NOT_CONFIRMED / UNKNOWN_COVERAGE"| UI2["UI tables"]
-    X -->|"rows as delimited untrusted data"| LLM["Ollama qwen3:14b via LangChain"]
+    X -->|"rows as delimited untrusted data"| LLM["Ollama LLM_MODEL via LangChain<br/>qwen3:14b in the evidence runs<br/>qwen3:4b-instruct in the screenshots"]
     LLM --> V["Verifier: deterministic sentence filter"]
     V --> UI2
     UI2 --> U
@@ -135,11 +135,11 @@ graph TD
 sequenceDiagram
     autonumber
     actor A as Analyst
-    participant UI as Streamlit (127.0.0.1)
+    participant UI as Web UI + FastAPI (127.0.0.1)
     participant RT as Db2HybridRetriever / needle.triage
     participant OL as Ollama
     participant DB as Db2 (SESSION_USER = analyst)
-    participant LLM as qwen3:14b
+    participant LLM as LLM_MODEL (qwen3:14b in the evidence runs)
     participant VF as Verifier
 
     A->>UI: Db2 user ID + password, query text
@@ -462,7 +462,7 @@ the application. The router compensates outside the engine.
 | BM25 in plain SQL (postings + inline table function, index-only on `POSTING_PK_IX`) | Exact identifiers (CVE, GHSA, function names); the keyword leg sits under the same row permission; Db2 Text Search is not configured in the CE image (`CIE0774E`) | `docs/evidence/triage_explain.md`, `docs/evidence/text_search_probe.md` |
 | SQL PL procedure with one dynamic statement | Both legs and the fusion run next to the data in one statement, under the caller's RCAC | `sql/03_triage_proc.sql`, `docs/evidence/explain/v6_final_hybrid.exfmt.txt` |
 | `JSON_VALUE` with a recursive CTE | Query terms enter as one bound JSON value; no string-built SQL | `sql/03_triage_proc.sql` |
-| RCAC (`CREATE PERMISSION`, `CREATE MASK`) on 4 tables | Permissions enforced by the database for every leg, every client and the exposure join | `docs/evidence/rcac_real.md`, `rcac_raw/pytest_all_after_demo_embargo.log` |
+| RCAC (`CREATE PERMISSION`, `CREATE MASK`) on 4 tables | Permissions enforced by the database for every leg, every client and the exposure join | `docs/evidence/rcac_real.md`, `docs/evidence/rcac_raw/pytest_all_after_demo_embargo.log` |
 | Optimization guideline `SEARCH_LIST_SIZE` | Raises ANN quality for the router's APPROX choices (SRCHLSIZ in EXPLAIN) | `docs/evidence/rcac_real.md` finding 6 |
 | Application-period temporal table (`BUSINESS_TIME`, `WITHOUT OVERLAPS`) | Valid time of deployments: when a service actually ran a version (back-datable, unlike SYSTEM_TIME). "Exposed since" is plain SQL. It is not discovery time | `sql/05_sbom_temporal.sql`, `tests/test_app_db.py` |
 | Raw JSON in CLOB + SHA-256 | Provenance: every derived row traces to the unchanged source record | `ADV_RAW` |

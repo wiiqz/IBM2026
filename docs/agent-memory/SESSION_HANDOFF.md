@@ -1,3 +1,40 @@
+# SESSION HANDOFF — Kartikeya's session ending 2026-11-10 ~00:55 CST (Kartikeya's PC, Claude Code orchestrator)
+
+1. **Requested:** merge William's UI, verify the whole build live, review and fix before submission, then start the
+   submission steps (fork, video, forms, Devpost draft). Nothing is submitted without the user's approval.
+2. **Verified:** on Kartikeya's PC against the Codespace Db2 (tunnel `localhost:50000`): web build PASS; full live
+   pytest 206 passed, 0 failed, 0 skipped; `web_acceptance` ALL PASS (11 checks); draft video 168.87 s; memo day
+   counts match exposure (2448, 919, 502). Audit: validator PASSED on a `make_submission` copy, no secrets, README
+   numbers trace to evidence. Judge review about 78/100 now, about 83 with fixes.
+3. **Changed:** merged William's UI into local `needle` (`8e02dad`); memo verifier rule 6 (`dee81d7`, 11 tests);
+   UI fixes (RecallChart label, Landing embargoed-row note, memo badge "CHECKED AGAINST SQL", Ctrl/Cmd+Enter hint,
+   ranking and SqlPanel wording, Finding plan-cache footnote; `dist` rebuilt 00:50); doc-fix batch in progress
+   (gitignore negation for evidence logs, `.gitattributes`, Python 3.12+, model names, Streamlit to React copy,
+   `hit@10` vs `recall@10`, router exact-scan note, team Needlepoint, William in member tables). Repo
+   `wiiqz/IBM2026` is now public; William removed `research/competition.md` and `research/organizers.md` (`3449a08`).
+   Created fork `KnigguKniggu-droid/IBM_Db2_TechX_Project_Submission` (clone `C:\Users\ganes\IBM26_pr`, branch
+   `submission/needle`). Created Devpost draft 1292931. Partly filled Google Form A in Chrome.
+4. **Tested:** pytest live 206/0/0; web build; `web_acceptance` 11 checks; validator on a copy; fresh-clone check;
+   draft video render.
+5. **Failed / incidents (resolved):** an agent killed the demo server on port 8600 by port number (restarted; see
+   LESSONS); the Chrome file_upload tool cannot reach the Google Forms Drive picker (user must click Browse).
+6. **Decisions:** see `DECISIONS.md` "Kartikeya's session 2026-11-10".
+7. **Files needing attention:** the uncommitted doc-fix batch (review, then commit); `needle/README.md`,
+   `needle/submission.json`, `submission_copy/PR_BODY.md` (`video_url`; `repo_url` is
+   `https://github.com/wiiqz/IBM2026`); `video/yt_upload_needle.py` (confirm YouTube channel);
+   `video/out/claude_ai/` and `video/out/footage/` (video inputs); `video/out/db2_extension_installed.png` (Form A upload).
+8. **Incomplete:** doc-fix commit and push of `needle`/`main` (local ahead of origin); fork content, validator run,
+   `feat(needle)` commit and PR; final video (rendering in Claude.ai chat
+   https://claude.ai/chat/709b02e9-af00-4e71-becd-9e11070e2495, extra footage x1-x4 being re-recorded), QC and
+   YouTube upload; Google Form A page 1 (user adds WhatsApp, course/branch/year, screenshot upload) and page 2 (PR
+   URL); Form B (forms.gle/ZjsLaFU5zAYJonwk9) not opened; WhatsApp community join (user); Unstop Round 2; Devpost
+   details page and submit (William invite link:
+   (secret invite link: on the Devpost team page; shared privately, never in the repo)); LinkedIn; Codespace deletion.
+9. **Next step:** CURRENT_STATE "Next actions" 1 (review and commit the doc fixes, push `needle`/`main`), then 2-6 in
+   order. Deadline 05:30 CST.
+
+---
+
 # SESSION HANDOFF — William's session ending 2026-11-10 ~00:35 CST (William's Mac, Claude Code)
 
 1. **Requested:** HANDOFF_WILLIAM.md section 10 (UI), with William's overrides: React/Vite + FastAPI (not

@@ -78,7 +78,7 @@ const ERROR_TITLE: Record<string, string> = {
 };
 const ERROR_HINT: Record<string, string> = {
   login: "Check the Db2 user ID and password. RCAC binds to exactly this identity.",
-  db: "Is the SSH tunnel to the Codespace up (localhost:50000) and the database VECDB active?",
+  db: "Is Db2 running at DB2_HOST and DB2_PORT from .env, and is the database VECDB active?",
   ollama: "Start Ollama (localhost:11434) and pull nomic-embed-text. Nothing is shown from a cache.",
   sql: "Db2 answered with an error. Nothing is shown from a cache.",
   api: "Start it from the needle/ folder: python -m needle.api",

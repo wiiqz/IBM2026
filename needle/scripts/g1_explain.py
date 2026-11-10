@@ -27,7 +27,7 @@ BOUND = "VECTOR(CAST(? AS CLOB(100K)), 768, FLOAT32)"
 
 def vec_text(v):
     # The literal-vector EXPLAIN variants inline this text into SQL, so every element is forced through float()
-    # (a value with a quote or any non-number raises here) and NaN/Infinity are rejected (review_codex.md #3).
+    # (a value with a quote or any non-number raises here) and NaN/Infinity are rejected (internal review finding 3).
     vals = [float(x) for x in v]
     if len(vals) != 768:
         raise ValueError(f"expected 768 floats, got {len(vals)}")

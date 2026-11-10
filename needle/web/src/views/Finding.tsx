@@ -173,7 +173,7 @@ function PlanCache({ f, k }: { f: Finding; k: number }) {
           </tbody>
         </table>
         <p className="border-t border-hair px-4 py-2 text-xs text-mute">
-          {pc.distinct_executable_ids} executable id, {pc.steps[0]?.queries ?? k} queries per identity, package cache flushed first ·{" "}
+          {pc.distinct_executable_ids} executable id, {pc.steps[0]?.queries ?? k} queries per identity (their own sample, not the held-out set), package cache flushed first ·{" "}
           <a href={evidenceUrl(f.sources.plan_cache)} target="_blank" rel="noreferrer">{f.sources.plan_cache}</a>
         </p>
       </div>

@@ -3,11 +3,11 @@
   "project": {
     "title": "NEEDLE: permission-aware hybrid retrieval in Db2",
     "slug": "needle",
-    "short_description": "NEEDLE maps a vague security report to the services it affects. One Db2 SQL PL call fuses BM25 keyword rank (plain SQL) and DiskANN vector rank (FETCH APPROX on a vector index) with reciprocal rank fusion under row and column access control, and an exact SBOM join with BUSINESS_TIME history says which services are affected and since when. NEEDLE measures what row permissions do to approximate vector search: every user shares one plan with a constant observed optimizer estimate (filter factor 0.495), the index over-fetches by 1/FF, and a user who sees 10% of the rows gets 2.05 of 10 rows (recall 0.205). A per-user router restores recall to 0.987-1.000 on held-out queries with 0 leaks.",
+    "short_description": "NEEDLE maps a vague security report to the services it affects: one Db2 SQL PL call fuses BM25 keyword rank (plain SQL) and DiskANN vector rank (FETCH APPROX on a vector index) with reciprocal rank fusion under row and column access control, and an exact SBOM join with BUSINESS_TIME history says which services are affected and since when. NEEDLE measures what row permissions do to approximate vector search: every user shares one plan with a constant observed optimizer estimate (filter factor 0.495), the index over-fetches by 1/FF, and a user who sees 10% of the rows gets 2.05 of 10 rows (recall 0.205). A per-user router restores recall to 0.987-1.000 on held-out queries with 0 leaks.",
     "category": "AI / RAG / Security",
     "demo_url": "",
     "video_url": "TODO",
-    "repo_url": "TODO"
+    "repo_url": "https://github.com/wiiqz/IBM2026"
   },
   "team": {
     "name": "Needlepoint",
@@ -44,8 +44,8 @@
     ]
   },
   "tech_stack": {
-    "languages": ["Python", "SQL", "SQL PL"],
+    "languages": ["Python", "SQL", "SQL PL", "TypeScript"],
     "frameworks": ["LangChain", "Haystack", "FastAPI", "React", "Vite", "Tailwind CSS", "Streamlit", "pytest"],
-    "ai_models": ["Ollama nomic-embed-text (768-dim embeddings)", "Ollama qwen3:14b (memo)"]
+    "ai_models": ["Ollama nomic-embed-text (768-dim embeddings)", "Ollama qwen3:14b (memo in the evidence runs; set by LLM_MODEL, the screenshots used qwen3:4b-instruct)"]
   }
 }

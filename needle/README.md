@@ -1,8 +1,20 @@
 # NEEDLE: permission-aware hybrid retrieval in Db2
 
-> **One-line pitch:** NEEDLE tells you which of your services a vague security report hits. BM25 keyword rank and
-> DiskANN vector rank are fused inside IBM Db2 under row and column access control (RCAC), and NEEDLE measures and
-> fixes what those row permissions do to approximate vector search.
+> **One-line pitch:** paste a vague security message ("the yaml loader can run code, no CVE yet"). NEEDLE returns the
+> matching advisories, the services that run an affected version, and since when. Keyword (BM25) and vector (DiskANN)
+> search run and fuse in one Db2 SQL statement, and Db2 row access control (RCAC) decides what each analyst may see.
+> We found that under row permissions Db2's vector index returns about 2 of 10 results to an analyst who may see 10 %
+> of the rows. NEEDLE measures why and routes around it: 10 of 10 rows, 0 leaks.
+
+**Demo video:** TODO(final): YouTube link (under 3 minutes).
+
+![NEEDLE triage console: verdict, rank-flow chart and the keyword, vector and hybrid rankings from one Db2 call](docs/screenshots/01_triage_ranking.png)
+
+**In plain words.** A message says some Python library can run code. NEEDLE searches 26,210 real advisories inside
+IBM Db2 by keyword and by meaning in one SQL call, then joins the hits with each service's software bill of materials
+over time, and says which services are AFFECTED and since when. Each analyst signs in as their own Db2 user, so Db2
+itself hides what they may not see. The model only writes a short memo; Db2 decides what matches, what is affected,
+and who may see it.
 
 **For reviewers, in 3 minutes**
 1. [What we found](#what-we-found): the RCAC x DiskANN result, with the chart and the control experiment.
@@ -233,14 +245,15 @@ Query: "heap overflow in the image library's FlashPix JPEG decoder can lead to c
 ## AI / LLM Architecture
 - **Framework:** LangChain (`langchain-core` `BaseRetriever`, `ChatOllama`).
 - **Models:** Ollama `nomic-embed-text` (768-dim embeddings; prefixes `search_document: ` / `search_query: `);
-  Ollama `qwen3:14b` for the memo. Everything runs locally. No cloud key is needed.
+  Ollama `qwen3:14b` for the memo in the evidence runs (`LLM_MODEL` selects it; the screenshots used
+  `qwen3:4b-instruct`). Everything runs locally. No cloud key is needed.
 - **Workflow:** sign-in -> query -> tokens + embedding -> router picks the search depth for the session user ->
   `NEEDLE.TRIAGE` on the analyst's own connection -> fused rows -> exact SBOM join -> optional memo -> verifier -> UI.
 - **What the LLM does not do:** it does not decide which advisory matches, which service is affected, or who may see
   what. Db2 decides all three.
 
 ## Tech Stack
-- **Backend / core:** Python 3.11+ (built with 3.13), `ibm_db`, SQL and SQL PL.
+- **Backend / core:** Python 3.12+ (built with 3.13), `ibm_db`, SQL and SQL PL.
 - **Database:** IBM Db2 12.1.5 Community Edition.
 - **Frontend / UI:** React 19 + TypeScript + Vite + Tailwind (`web/`) over a local FastAPI (`src/needle/api.py`,
   127.0.0.1 only); the original Streamlit page (`src/needle/app.py`) and a CLI still work.
@@ -250,17 +263,33 @@ Query: "heap overflow in the image library's FlashPix JPEG decoder can lead to c
 ## Prerequisites
 - **Linux x86-64 host with Docker** for Db2 (Db2 vector indexes run on Linux AMD64 only). macOS on Apple silicon
   runs the image under emulation; vector indexes are not supported there. About 4 cores, 8-16 GB RAM, 15 GB disk.
-- Python 3.11 or newer, `pip`, `unzip`, `curl`. Node.js 20+ and `npm` to build the web UI (`web/`).
-- [Ollama](https://ollama.com) with `nomic-embed-text` (embeddings) and optionally `qwen3:14b` (memo).
+- Python 3.12 or newer, `pip`, `unzip`, `curl`. Node.js 20.19+ or 22.12+ (Vite) and `npm` to build the web UI (`web/`).
+- [Ollama](https://ollama.com) with `nomic-embed-text` (embeddings) and optionally `qwen3:14b` (memo; `LLM_MODEL`
+  selects the model).
   Sample mode below needs neither.
 
 ## Setup & Installation
-> **Clean-host check:** steps 1-4 and "Sample mode" below ran end to end on a fresh Linux x86-64 Docker host
-> (4 cores, 15 GB RAM), from a copy of this folder without `.env`, `.venv` or `data/`, and without Ollama. Every
-> step exited 0. It took 197 s with the Db2 image already pulled. Commands, output and the fixes made on the way:
+> **Clean-host check:** steps 1-4 and "Sample mode" below ran end to end on a fresh copy of this folder (without
+> `.env`, `.venv` or `data/`) in a new directory and a new Db2 container, on our development Codespace (4 cores,
+> 15 GB RAM), without Ollama. Every step exited 0. It took 197 s with the Db2 image already pulled. Commands, output and the fixes made on the way:
 > [`docs/evidence/clean_host_run.md`](docs/evidence/clean_host_run.md). The full-corpus steps 5-6 were not part of that run.
 
-Quickstart for Linux or macOS with Docker. Run from `submissions/needle/`.
+**Db2-free quick check (any OS).** Unit tests and the web UI build, without Docker, Db2 or Ollama. Our run on
+Windows: 166 passed, 40 deselected.
+```powershell
+# Windows PowerShell
+py -3.13 -m venv .venv; .venv\Scripts\Activate.ps1; pip install -r requirements.txt
+$env:PYTHONPATH="src"; python -m pytest -q -m "not db" tests
+cd web; npm ci; npm run build; cd ..
+```
+```bash
+# macOS / Linux
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+PYTHONPATH=src python -m pytest -q -m "not db" tests
+(cd web && npm ci && npm run build)
+```
+
+Quickstart for Linux or macOS with Docker. Run from the folder that holds this README (`submissions/needle/` in the PR).
 
 ```bash
 # 1. Configuration: set DB2_PASSWORD and the NDL_*_PASSWORD values (any strong local passwords)
@@ -331,7 +360,7 @@ Copy `.env.example` to `.env`. Never commit `.env`. `set -a; . ./.env` needs pas
 | Key | Purpose |
 |---|---|
 | `DB2_HOST`, `DB2_PORT`, `DB2_DATABASE`, `DB2_USER`, `DB2_PASSWORD` | Admin connection, used only for setup, bulk load and measurements |
-| `DB2_SECURITY` | `false` locally (no TLS on the local container) |
+| `DB2_SECURITY` | `false` locally (no TLS on the local container); informational, not read by the code |
 | `DB2_CONTAINER` | Optional: Db2 container name (default `needle-db2`); `DB2_PORT` is also the host port that `docker-compose.yml` publishes |
 | `NDL_SENIOR_PASSWORD`, `NDL_JUNIOR_PASSWORD`, `NDL_P10_PASSWORD` ... `NDL_P75_PASSWORD` | Analyst users (Linux users in the container); RCAC applies to them |
 | `OLLAMA_URL`, `EMBED_MODEL`, `LLM_MODEL` | Local models |
@@ -344,6 +373,7 @@ Copy `.env.example` to `.env`. Never commit `.env`. `set -a; . ./.env` needs pas
 ```bash
 # Web UI (React) + local API (FastAPI). Both listen on 127.0.0.1 only.
 (cd web && npm ci && npm run build)      # once: builds web/dist
+# Windows PowerShell 5.1: cd web; npm ci; npm run build; cd ..
 PYTHONPATH=src python -m needle.api      # serves the API and web/dist on http://127.0.0.1:8600
 #   sign in with a Db2 user ID and password, e.g. NDL_JUNIOR and the password you set in .env
 #   recorded demos only: NEEDLE_DEMO_SWITCHER=1 PYTHONPATH=src python -m needle.api   (one-click NDL_SENIOR / NDL_JUNIOR /
@@ -480,7 +510,7 @@ python eval/build_queries.py --verify      # frozen query files match their SHA-
 python eval/run_eval.py                    # exits non-zero if the declared quality gate fails
 ```
 
-Recorded test runs (each file holds the command and its output):
+Recorded test runs (each file holds the output; the "What" column says what ran):
 
 | What | Result | Evidence |
 |---|---|---|
@@ -578,7 +608,8 @@ them. The router line shows the depth chosen for this identity.
 
 **2. Services and the verified memo.** An exposure timeline from the temporal SBOM history (AFFECTED since 2020-02-27,
 and the windows that ended), exposure grouped by service with the advisories behind each status; the memo
-from the local model (qwen3:4b via LangChain) after the verifier.
+from the local model (`qwen3:4b-instruct` via LangChain in this screenshot; the evidence runs used `qwen3:14b`)
+after the verifier.
 ![Affected services and the verified memo](docs/screenshots/02_exposure_memo.png)
 
 **3. Same query, three Db2 identities.** The Pillow FlashPix prompt: Db2 returns the two embargoed advisories to
@@ -601,7 +632,9 @@ different rows returned (`eval/results/rcac_plancache.json`).
 period, 27 embargoed rows; then the visible rows per identity ([`docs/evidence/verify_db2.txt`](docs/evidence/verify_db2.txt)).
 ![Db2 CLP verification](docs/screenshots/07_verify_db2_clp.png)
 
-**8. Tests.** RCAC leak tests against the live database, and the verifier + API tests.
+**8. Tests.** RCAC leak tests against the live database, and the verifier + API tests. This screenshot is a later
+run than the logs in the table above: `-m db` on `tests/test_rcac.py` and `tests/test_triage_rcac.py` shows 28 passed,
+11 deselected; `tests/test_verify.py` and `tests/test_api.py` show 67 passed.
 ![Tests passing](docs/screenshots/08_tests_passing.png)
 
 ## Security
@@ -719,7 +752,10 @@ Team name: **Needlepoint**.
 - [IBM Db2 Community Edition](https://www.ibm.com/products/db2) container image (IBM licence, accepted at run time).
 - [`ibm_db`](https://github.com/ibmdb/python-ibmdb) (Apache 2.0), [LangChain](https://github.com/langchain-ai/langchain) (MIT),
   [Ollama](https://github.com/ollama/ollama) (MIT), [Streamlit](https://github.com/streamlit/streamlit) (Apache 2.0),
-  [pytest](https://github.com/pytest-dev/pytest) (MIT), [`rank-bm25`](https://github.com/dorianbrown/rank_bm25) (Apache 2.0).
+  [pytest](https://github.com/pytest-dev/pytest) (MIT), [`rank-bm25`](https://github.com/dorianbrown/rank_bm25) (Apache 2.0),
+  [`haystack-ai`](https://github.com/deepset-ai/haystack) (Apache 2.0), [FastAPI](https://github.com/fastapi/fastapi) (MIT).
+- Web UI: [React](https://github.com/facebook/react) (MIT), [Vite](https://github.com/vitejs/vite) (MIT),
+  [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) (MIT).
 - Models: [`nomic-embed-text`](https://ollama.com/library/nomic-embed-text) (Apache 2.0),
   [`qwen3`](https://ollama.com/library/qwen3) (Apache 2.0).
 - Connectors we studied and compare against: [`langchain-db2`](https://pypi.org/project/langchain-db2/) (MIT),

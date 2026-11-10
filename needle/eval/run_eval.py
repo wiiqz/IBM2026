@@ -38,8 +38,9 @@ Gate (exit code 1): recall@10 of GATE_RETRIEVER on the named slice < GATE_MIN (0
 Rationale, fixed before the first real run: named queries are verbatim advisory summaries that
 contain the package name and the source advisory is in the corpus, so a working hybrid
 retriever must find a correct advisory in its top 10 for at least 80% of them.
-Exit codes: 0 pass, 1 gate failed, 2 setup error (sha256 mismatch, DB unreachable),
-3 gate retriever not evaluated (use --no-gate for partial runs; the JSON still records it).
+Exit codes: 0 pass, 1 gate failed or a setup error raised as SystemExit (sha256 mismatch, saved vectors
+that do not match the queries), 2 DB unreachable, 3 gate retriever not evaluated (use --no-gate for partial
+runs; the JSON still records it).
 """
 from __future__ import annotations
 

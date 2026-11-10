@@ -30,3 +30,11 @@ William's session (macOS arm64 app host, Db2 in a Codespace)
 - A grid item holding an `overflow-x: auto` table needs `min-width: 0`, or the page scrolls sideways on phones.
 - Do not let a test read an evidence file that the same pytest run is redirecting into (race → false failure).
 - Never commit build caches (`tsconfig.tsbuildinfo`): one committed-then-deleted cache blocked a later rebase.
+
+Kartikeya's session 2026-11-10 (submission prep)
+- Never kill a process by port without checking who owns it: an agent killed the demo server on port 8600.
+- Google Forms file upload uses a cross-origin Drive picker. The Chrome `file_upload` tool cannot reach it. The user
+  must click Browse.
+- Navigating away from a half-filled Google Form keeps the values when you go back (draft autosave). Use a new tab anyway.
+- The official submission repo's root `.gitignore` has `*.log`. Add a negation in the project's own `.gitignore` for
+  every cited evidence log.

@@ -70,8 +70,8 @@ export default function RecallChart({ data, metric, title, annotate = false }: {
             return (
               <g aria-hidden>
                 <path d={`M${ax - 6},${y1} H${ax} V${y2 + 6} M${ax - 4},${y2 + 10} L${ax},${y2 + 4} L${ax + 4},${y2 + 10}`} fill="none" stroke="#101213" strokeWidth={1.25} />
-                <text x={ax + 8} y={(y1 + y2) / 2} dy="-0.2em" className="fill-ink font-mono text-[12px] font-semibold" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">{fmtY(a[metric])} → {fmtY(b[metric])}</text>
-                <text x={ax + 8} y={(y1 + y2) / 2} dy="1.1em" className="fill-mute text-[11px]" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">at {Math.round(a.x)}% visible, with the router</text>
+                <text x={ax + 8} y={y1 + 20} dy="-0.2em" className="fill-ink font-mono text-[12px] font-semibold" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">{fmtY(a[metric])} → {fmtY(b[metric])}</text>
+                <text x={ax + 8} y={y1 + 20} dy="1.1em" className="fill-mute text-[11px]" stroke="#f3f7f9" strokeWidth={5} paintOrder="stroke" strokeLinejoin="round">at {Math.round(a.x)}% visible, with the router</text>
               </g>
             );
           })()}

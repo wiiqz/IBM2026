@@ -1,5 +1,5 @@
 # fix_h1 evidence (app agent) - 2026-11-09 20:13 CST
-# Review findings: H1, M1, M2 (docs/evidence/review_claude.md) + B (docs/evidence/review_codex.md) in src/needle/verify.py
+# Internal review findings: H1, M1, M2 + B in src/needle/verify.py
 $ PYTHONPATH=src pytest -v tests/test_verify.py
 tests/test_verify.py::test_keeps_supported_claims_and_aliases PASSED     [  2%]
 tests/test_verify.py::test_removes_unknown_advisory_service_package PASSED [  4%]
@@ -74,7 +74,7 @@ model=qwen3:14b elapsed=16.4s
 
 --- REMOVED (0) ---
 
-# Follow-up (review_codex.md): A sign-in, B pair checks, C UNKNOWN_COVERAGE - 20:16 CST
+# Follow-up (internal review): A sign-in, B pair checks, C UNKNOWN_COVERAGE - 20:16 CST
 $ PYTHONPATH=src pytest -v tests/test_verify.py tests/test_sbom.py tests/test_retriever.py tests/test_app_ui.py
 tests/test_verify.py::test_b_claims_must_hold_for_the_exact_pair[ml-feature-store is AFFECTED by GHSA-6757-jp84-gxfx.] PASSED [ 42%]
 tests/test_verify.py::test_b_claims_must_hold_for_the_exact_pair[ml-feature-store is AFFECTED by CVE-2020-1747.] PASSED [ 43%]

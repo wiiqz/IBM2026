@@ -40,7 +40,7 @@ as "database layer", not "alert".
 
 ## Type
 One family plus its mono: **Red Hat Text** (UI) and **Red Hat Mono** (IDs, SQL, figures). Red Hat is an IBM
-company, so the faces sit in the judges' world without being Carbon's Plex. The scale is fixed rem at a 1.2
+company, so the faces fit IBM's design world without being Carbon's Plex. The scale is fixed rem at a 1.2
 ratio from 14 px UI text: 12 / 14 / 16.8 / 20.2 / 24.2 / 29 / 34.8. The Finding (a read surface) gets one
 larger headline step.
 

@@ -25,3 +25,14 @@
 - 2026-11-10 ~00:45 CST, user decision: `research/competition.md` (grades other teams' PRs) and `research/organizers.md`
   (profiles organizers and judges) are **deleted from the repo** so a judge browsing it cannot find them; do not
   restore or recreate them. They remain in git history only. Consults, CONTRACT.md, PLAN.md and reviews may stay.
+
+## Kartikeya's session (2026-11-10 00:00 – 00:55 CST)
+- Repo `wiiqz/IBM2026` is PUBLIC (William). The official submission goes through the fork
+  `KnigguKniggu-droid/IBM_Db2_TechX_Project_Submission`, branch `submission/needle`, built only with `make_submission`.
+- Memo verifier gets rule 6: durations in the memo must match `DAYS_EXPOSED` (commit `dee81d7`, 11 tests). Reason: a
+  qwen3:4b draft said "over 900 days" when the real exposure was 2,448 days.
+- Doc-fix batch from the audit and judge review is applied before the PR. The project's own `.gitignore` negates
+  `*.log` for cited evidence logs, because the official repo root ignores `*.log`.
+- Final video is rendered in Claude.ai (v4 recipe, en-GB-Ryan voice, at most 2:58). The local draft
+  `video/out/needle_demo.mp4` (168.87 s) is the fallback. Upload to YouTube unlisted.
+- Google Forms: use a new tab per form. The user does the Drive-picker upload and the WhatsApp join.

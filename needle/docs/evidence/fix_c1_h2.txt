@@ -1,8 +1,8 @@
 # pytest -m db (C1/H2 fix verification) 2026-11-09 20:13 CST
 # command: .venv/Scripts/python.exe -m pytest tests/test_triage_rcac.py tests/test_bm25_parity.py -m db -v -rs -p no:cacheprovider
 ============================= test session starts =============================
-platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\ganes\IBM26\needle\.venv\Scripts\python.exe
-rootdir: C:\Users\ganes\IBM26\needle
+platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0 -- <repo>/needle\.venv\Scripts\python.exe
+rootdir: <repo>/needle
 configfile: pytest.ini
 plugins: anyio-4.16.0, langsmith-0.14.17
 collecting ... collected 8 items / 2 deselected / 6 selected

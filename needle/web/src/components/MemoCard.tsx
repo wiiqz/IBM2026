@@ -35,7 +35,7 @@ export default function MemoCard({ result, mode, memo, setMemo }: {
         <div className="fade-in mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div className="min-w-0">
             <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-mute num">
-              <span className="font-semibold text-accent-strong">VERIFIED</span>
+              <span className="font-semibold text-accent-strong">CHECKED AGAINST SQL</span>
               <span>{memo.model}</span><span>{memo.elapsed_s.toFixed(1)} s</span>
               <span>{memo.kept} kept</span><span className={memo.removed.length ? "text-affected" : ""}>{memo.removed.length} removed</span>
             </p>
@@ -47,7 +47,7 @@ export default function MemoCard({ result, mode, memo, setMemo }: {
             <div>
               <p className="mb-2 font-mono text-xs font-semibold text-affected">REMOVED BY THE VERIFIER · {memo.removed.length}</p>
               {memo.removed.length === 0 ? (
-                <p className="text-sm text-mute">Nothing removed: every claim matched the SQL rows.</p>
+                <p className="text-sm text-mute">Nothing removed: every ID, service, status and day count matched the SQL rows.</p>
               ) : (
                 <ul className="grid gap-2.5">
                   {memo.removed.map((r, i) => (

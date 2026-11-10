@@ -99,7 +99,7 @@ export default function SignIn({ demo, demoUsers, health, onSignedIn }: {
         {err && <div className="mt-4"><ErrorState kind={err.kind} message={err.message} /></div>}
         {health && !health.db.ok && !err && (
           <p className="mt-4 border-l-[3px] border-affected pl-3 text-xs text-ink-2">
-            Db2 is not reachable ({health.db.detail}). Start the SSH tunnel to the Codespace first.
+            Db2 is not reachable ({health.db.detail}). Start Db2 and check DB2_HOST and DB2_PORT in .env.
           </p>
         )}
       </section>

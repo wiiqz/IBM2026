@@ -174,7 +174,7 @@ function Hero() {
           style={chapter ? { visibility: "hidden" } : undefined}>
           <div className="pointer-events-auto hidden max-w-[40ch] lg:absolute lg:top-8 lg:block">
             <p className="font-mono text-[11px] leading-4 text-slab-mute">
-              {info ? `${fmt.int(info.n)} public advisories, each placed by its meaning (nomic-embed-text, 768 dimensions to 3D by PCA). The faint lines link near neighbours; the pulses walk them toward the question, the way a DiskANN index search moves (an illustration). Drag to turn.` : "\u00a0"}
+              {info ? `${fmt.int(info.n)} public advisories (${fmt.int(info.excluded_embargoed)} embargoed rows left out), each placed by its meaning (nomic-embed-text, 768 dimensions to 3D by PCA). The faint lines link near neighbours; the pulses walk them toward the question, the way a DiskANN index search moves (an illustration). Drag to turn.` : "\u00a0"}
             </p>
             <button onClick={() => setPaused(!paused)} aria-pressed={paused} data-testid="pause-motion"
               className="btn btn-ghost-dark mt-3 min-h-0 px-2.5 py-1 text-xs font-medium">

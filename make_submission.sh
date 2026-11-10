@@ -12,8 +12,9 @@ rsync -a \
   --exclude 'CONTRACT.md' --exclude 'docs/PLAN.md' \
   --exclude 'docs/evidence/review_claude.md' --exclude 'docs/evidence/review_codex.md' \
   --exclude '.env' --exclude '.env.*' --exclude '*.secret.env' \
-  --exclude '.venv/' --exclude 'data/' --exclude '__pycache__/' --exclude '.pytest_cache/' \
-  --exclude 'web/node_modules/' --exclude 'web/dist/' --exclude '*.tsbuildinfo' \
+  --exclude '/.venv/' --exclude '/data/' --exclude '/.streamlit/secrets/' \
+  --exclude '__pycache__/' --exclude '.pytest_cache/' --exclude 'node_modules/' --exclude 'dist/' \
+  --exclude '*.pyc' --exclude '*.tsbuildinfo' \
   "$SRC/" "$TARGET/"
 cp "$SRC/.env.example" "$TARGET/.env.example"
 
@@ -28,7 +29,8 @@ fi
 # Guard 2: no judge-profiling or internal notes. Organizer repo URLs (KunalGolaIBM/...) are allowed.
 NAMES='Dhruv|Pawan|Keshav|Daya Nand|Shaik Sadiq|Gaurav Saxena|Chaturvedi|Maheshwari|Thakur|Kunal Gola|judge panel|what they reward'
 if grep -rnE --include='*.md' --include='*.py' --include='*.sql' --include='*.json' --include='*.sh' \
-     --include='*.ps1' --include='*.yml' --include='*.toml' --include='*.txt' "$NAMES" "$TARGET"; then
+     --include='*.ps1' --include='*.yml' --include='*.toml' --include='*.txt' --include='*.ts' --include='*.tsx' \
+     --include='*.js' --include='*.html' --include='*.css' --include='*.log' "$NAMES" "$TARGET"; then
   echo "Internal/judge text found - fix before publishing"; exit 1
 fi
 # Guard 3: required files for the organizer validator.

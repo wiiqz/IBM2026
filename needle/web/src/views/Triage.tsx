@@ -64,7 +64,7 @@ export default function Triage({ session, state, demo, autoRun, onAutoRunDone, o
       <section aria-label="Query" className="panel p-4 sm:p-5">
         <label htmlFor="q" className="flex items-baseline justify-between gap-4">
           <span className="text-sm font-semibold">Advisory or chat message</span>
-          <span className="hidden text-xs text-mute sm:inline">Runs as <span className="font-mono font-semibold text-ink-2">{session.user}</span> · <Kbd>⌘</Kbd> <Kbd>Enter</Kbd></span>
+          <span className="hidden text-xs text-mute sm:inline">Runs as <span className="font-mono font-semibold text-ink-2">{session.user}</span> · <Kbd>Ctrl</Kbd>/<Kbd>⌘</Kbd> <Kbd>Enter</Kbd></span>
         </label>
         <textarea id="q" ref={box} value={query} onChange={(e) => setQuery(e.target.value)} rows={3} maxLength={4000}
           onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); }}
@@ -119,7 +119,7 @@ export default function Triage({ session, state, demo, autoRun, onAutoRunDone, o
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-mute">Exposure and memo use</span>
+                    <span className="text-xs text-mute">Ranking for services and memo</span>
                     <Segmented label="Ranking used for exposure and memo" value={mode} onChange={(m) => { setMode(m); setMemo(null); }}
                       options={MODES.map((m) => ({ value: m, label: MODE_LABEL[m] }))} />
                   </div>

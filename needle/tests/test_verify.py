@@ -116,7 +116,7 @@ def test_strip_think():
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# Review findings H1 / M1 / M2 (docs/evidence/review_claude.md) and B (docs/evidence/review_codex.md).
+# Internal review findings H1 / M1 / M2 and B.
 # Fixture of the review: ml-feature-store = AFFECTED, payments-api = NOT_CONFIRMED.
 # ---------------------------------------------------------------------------------------------------------------
 REVIEW_ADVS = [{"adv_id": "GHSA-8q59-q68h-6hv4", "aliases": ["CVE-2020-14343"], "packages": ["pyyaml", "jinja2"]},
